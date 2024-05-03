@@ -1,0 +1,176 @@
+---
+title: "Class Activity 3"
+author: "Your name here"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+format:
+  pdf: default
+  html:
+    df_print: paged
+editor: visual
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  error: true
+---
+
+Data objects can range from simple vectors, which are one-dimensional arrays that hold elements of the same type, to more complex structures like lists and data frames that can store heterogeneous data types. R treats everything as an object, from simple numbers and strings to more complex data structures. This concept allows for a high degree of flexibility in data manipulation and analysis. Here are some of the fundamental data objects you'll encounter in R:
+
+\- Vectors: The simplest and most common type of data object in R. They hold elements of the same data type.
+
+\- Matrices: Two-dimensional, rectangular data structures that can store data of a single type.
+
+\- Data frames: Similar to matrices but can contain different types of data in each column, much like a spreadsheet.
+
+\- Lists: Complex data structures that can hold elements of any type, including other lists.
+
+Understanding these data objects and their characteristics is the first step towards mastering data analysis in R. Now, let's explore some examples of these data objects in action.
+
+```{r}
+# some interesting data objects
+x <- floor(seq(2,2e2,length.out = 5))
+x.mat <- cbind(x, x**2)
+x.df <- data.frame(x=x,x.square=x**2)
+my.list <- list(myVec=x, myDf=x.df, myString=c("data science","machine learning"))
+```
+
+### Question 1: data types
+
+-   What data type is `x`?
+
+*Answer:*
+
+```{r}
+# code
+
+```
+
+-   What data type is `c(x, x/2)`?
+
+*Answer:*
+
+```{r}
+# code
+
+```
+
+-   What data type is `c(x,NA)`? What data type is `c(x,"NA")`?
+
+*Answer:*
+
+```{r}
+# code
+
+```
+
+### Question 2: Subsetting and coercion
+
+-   How can we reverse the order of entries in `x`?
+
+*Answer:*
+
+```{r}
+# code
+
+```
+
+-   What does `which(x < 100)` equal?
+
+*Answer:*
+
+```{r}
+# code
+
+```
+
+-   Extract the element of x that corresponds to the location in the preceding question.
+
+*Answer:*
+
+```{r}
+# code
+
+```
+
+-   What does `sum(c(TRUE,FALSE,TRUE,FALSE, TRUE))` equal?
+
+*Answer:*
+
+```{r}
+# code
+
+```
+
+-   What does `sum(x[c(TRUE,FALSE,TRUE,FALSE, TRUE)])` equal?
+
+*Answer:*
+
+```{r}
+# code
+
+```
+
+-   What does `sum(x < 100)` equal?
+
+*Answer:*
+
+```{r}
+# code
+
+```
+
+-   What does `sum(x[x < 100])` equal?
+
+*Answer:*
+
+```{r}
+# code
+
+```
+
+-   Why `dim(x.mat[1:2,1])` return `NULL` while `dim(x.mat[1:2,1:2])` returns a dimension?
+
+*Answer:*
+
+```{r}
+# code
+
+```
+
+### Question 3: Lists
+
+-   Using `my.list`, show six ways to write one command that gives the 3rd entry of variable `x` in data frame `myDf`
+
+*Answer:*
+
+```{r}
+# code
+
+```
+
+-   What class of object does the command `my.list[3]` return?
+
+*Answer:*
+
+```{r}
+# code
+
+```
+
+-   What class of object does the command `my.list[[3]]` return?
+
+*Answer:*
+
+```{r}
+# code
+
+```
+
+-   What class of object does the command `unlist(my.list)` return? Why are all the entries `character`s?
+
+*Answer:*
+
+```{r}
+# code
+
+```
