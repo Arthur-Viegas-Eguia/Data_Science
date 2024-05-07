@@ -1,0 +1,218 @@
+---
+title: "Class Activity 4"
+author: "Your name here"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      size = "small", 
+                      collapse = TRUE, 
+                      comment = NA, 
+                      warning = FALSE, 
+                      message = FALSE,
+                      error = TRUE, # document will compile even in case of error
+                      fig.width = 4,
+                      fig.height= 3,
+                      fig.align = 'center') 
+
+# load the necessary libraries
+library(tidyverse)
+library(ggplot2)
+# install.packages("datasauRus")  # uncomment to install
+library(datasauRus)
+library(dplyr)
+```
+
+
+
+## Your turn 1
+
+This worksheet will guide you through creating various plots using the `ggplot2` package in R. We will be using the `datasaurus_dozen` dataset from the `datasauRus` package for demonstration purposes. The dataset contains 13 different datasets, and we'll use them to create a variety of plots.
+
+### Scatterplot
+
+```{r, echo=FALSE}
+# prepare the dataset
+dino_data <- datasaurus_dozen %>%
+   filter(dataset == "dino")
+```
+
+a. Run the following code.
+
+```{r}
+ggplot(data = dino_data, mapping = aes(x = x, y = y)) +
+  geom_point()
+```
+
+b. You _must_ remember to put the aesthetic mappings in the `aes()` function! What happens if you forget? 
+
+*Answer:* 
+
+
+```{r}
+# Add a layer and see what happens
+ggplot(data = dino_data , x = __ , y = __)
+```
+
+
+c. The aesthetic mappings can be specified in the geom layer if you prefer, instead of the main `ggplot()` call. Give it a try:
+
+*Answer:* 
+
+```{r}
+# Rebuild the scatterplot with your aesthetic mapping in the geom layer
+ggplot(data = dino_data) +
+   geom_point(____) 
+```
+
+
+### Bar Plot
+
+In this problem, we'll explore creating a bar plot using the `datasaurus`_dozen dataset.
+
+a. Create a new data frame called `dataset_counts` containing the count of observations in each dataset.
+
+*Answer:* 
+
+```{r}
+_______ <- datasaurus_dozen %>%
+  group_by(dataset) %>%
+  summarise(count = n()) # number of rows in each dataset
+```
+
+b. Create a bar plot showing the number of observations in each dataset.
+
+*Answer:* 
+
+```{r}
+ggplot(data = _______, aes(x = dataset, y = count)) +
+  geom_***(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+
+
+c. Generate a bar plot to visualize the median of the `x` variable across different datasets, with error bars denoting the interquartile range (IQR) for each dataset.
+
+*Answer:* 
+
+```{r}
+# Calculate median and interquartile range for each dataset
+dataset_summary <- datasaurus_dozen %>%
+  group_by(dataset) %>%
+  summarise(median_x = median(x), iqr_x = IQR(x))
+
+# Create a bar plot with error bars representing the IQR
+ggplot(dataset_summary, aes(x = , y = )) +
+  geom_****() +
+  geom_****() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Median of x by Dataset with IQR Error Bars", x = "Dataset", y = "Median of x")
+```
+
+
+
+### Histogram
+
+a. Create a histogram of the `x` variable for the `dino` dataset.
+
+*Answer:* 
+
+```{r}
+ggplot(data = dino_data, aes(x = x)) +
+  geom_****(binwidth = 2) 
+```
+
+
+b. Overlay a density curve on the histogram.
+
+*Answer:* 
+
+```{r}
+ggplot(data = dino_data, aes(x = ____)) +
+  geom_histogram(aes(y = ________), binwidth = ____, fill = ) +
+  geom_density(color = "____")
+```
+
+
+### Boxplot
+
+*Answer:* 
+
+a. Create a boxplot of the x variable for each dataset in datasaurus_dozen.
+
+```{r}
+ggplot(data = datasaurus_dozen, aes(x = dataset, y = x)) +
+  geom_*****() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+### Faceting
+
+*Answer:* 
+
+a. Create a scatterplot of `x` vs. `y` for each dataset in `datasaurus_dozen` using `facet_wrap()`.
+
+```{r, fig.width=6, fig.height=6, out.width="90%"}
+ggplot(data = datasaurus_dozen, aes(x = x, y = y)) +
+  geom_point() +
+  facet_***(~ ****) +
+  theme_minimal()
+```
+
+
+### Variable Transformation
+
+a. The scatterplot of the `dino` dataset without any transformations is given below. Complete the code and store the plot in an object called `p1.`
+
+
+```{r}
+ggplot(data = dino_data, aes(x = x, y = y)) +
+  geom_point() +
+  theme_minimal() 
+```
+
+
+b. Now, apply the square root transformation to both the `x` and `y` axes using the `scale_x_sqrt()` and `scale_y_sqrt()` functions in the `dino` dataset. Complete the code and store the plot in an object called `p2.`
+
+*Answer:* 
+
+```{r}
+ggplot(data = dino_data, aes(x = x, y = y)) +
+  geom_****() +
+  scale_*****() +
+  scale_*****() +
+  theme_*****() 
+```
+
+
+c. Use `plot_layout()` and `plot_annotation` functions from `patchwork` package to plot the above two plots  side-by-side. 
+
+
+```{r}
+library(patchwork)
+# your r-code
+
+```
+
+
+
+d. Use `grid.arrange()` function from `gridExtra` package to get similar results as in part c. 
+
+*Answer:* 
+
+```{r}
+library(gridExtra)
+# your r-code
+
+```
+
+
+
+
