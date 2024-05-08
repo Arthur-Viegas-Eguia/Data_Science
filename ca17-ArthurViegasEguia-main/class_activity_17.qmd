@@ -1,0 +1,80 @@
+---
+title: "Class Activity 17"
+author: "Your name here"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+format:
+  pdf: default
+  html:
+    df_print: paged
+editor: visual
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  error: true
+---
+
+```{r setup, include=FALSE}
+# load the necessary libraries
+library(tidyverse)
+library(stringr)
+library(purrr)
+library(ggthemes)
+library(rvest)
+library(polite)
+```
+
+
+\vspace*{1in}
+
+
+## Group Activity 1
+
+1. Go to the [the numbers webpage](https://www.the-numbers.com/movie/budgets/all) and extract the table on the front page.
+
+```{r}
+session1 <- bow(url = "https://www.the-numbers.com/movie/budgets/all") %>% scrape() %>%
+  
+
+```
+
+
+2. Find out the number of pages that contain the movie table, while looking for the changes in the url in the address bar. How does the url changes when you go to the next page?
+
+*Answer:* 
+
+
+3. Write a for loop to store all the data in multiple pages to a single data frame. Also, do the same using `purrr::map_df `.
+
+```{r}
+library(tidyverse)
+library(rvest)
+
+new_urls <- "https://www.the-numbers.com/movie/budgets/all/"
+
+# Create an empty list
+df1 <- list()
+
+# Generate a vector of indices
+index <- seq(1, 6301, 100)
+```
+
+
+
+## Group Activity 2
+
+1. Go to [scrapethissite](https://www.scrapethissite.com/pages/forms/) and extract the table on the front page.
+
+```{r}
+session1 <- read_html("https://www.scrapethissite.com/pages/forms/") 
+```
+
+
+2. Find out the number of pages that contain the movie table, while looking for the changes in the url in the address bar. How does the url changes when you go to the next page?
+
+
+
+3. Write a for loop to store all the data in multiple pages to a single data frame. Also, do the same using `purrr::map_df `.
+
+
+

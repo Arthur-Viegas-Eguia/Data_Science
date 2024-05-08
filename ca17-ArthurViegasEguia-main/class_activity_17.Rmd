@@ -1,0 +1,148 @@
+---
+title: "Class Activity 17"
+author: "Arthur Viegas Eguoa"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      size = "small", 
+                      collapse = TRUE, 
+                      comment = NA, 
+                      warning = FALSE, 
+                      message = FALSE,
+                      error = TRUE)
+
+# load the necessary libraries
+library(tidyverse)
+library(stringr)
+library(purrr)
+library(ggthemes)
+library(rvest)
+library(polite)
+
+# Set ggplot theme
+theme_set(theme_stata(base_size = 8))
+```
+
+
+\vspace*{1in}
+
+
+## Group Activity 1
+
+1. Go to the [the numbers webpage](https://www.the-numbers.com/movie/budgets/all) and extract the table on the front page.
+
+```{r}
+session1 <- bow(url = "https://www.the-numbers.com/movie/budgets/all") %>% 
+  scrape() %>%
+  html_table() %>% 
+  purrr::pluck(1) %>% 
+  janitor::clean_names() %>% 
+  mutate(across(everything(), as.character))
+  
+
+```
+
+
+2. Find out the number of pages that contain the movie table, while looking for the changes in the url in the address bar. How does the url changes when you go to the next page?
+
+*Answer:* The first is 1, the second 101, the third is 201. So the increment is by 100, starting from 1. The last page is 6401. 
+
+
+3. Write a for loop to store all the data in multiple pages to a single data frame. Also, do the same using `purrr::map_df `.
+
+```{r}
+library(tidyverse)
+library(rvest)
+
+new_urls <- "https://www.the-numbers.com/movie/budgets/all/"
+
+# Create an empty list
+df1 <- list()
+
+# Generate a vector of indices
+index <- seq(1, 6401, 100)
+```
+
+
+```{r}
+#This is bad, it takes a long time
+for(i in 1:length(index)){
+  url <- str_glue({new_urls}, {index[i]})
+  
+  webpage <- read_html(url) #This is the same as bow() %>% scrape()
+  table_new <- html_table(webpage)[[1]] %>% #gets the ith table from the list
+    janitor::clean_names() %>% 
+    mutate(across(everything(), as.character))
+  df1[[i]] <- table_new
+}
+
+final_data <- bind_rows(df1)
+
+dplyr::glimpse(final_data)
+
+#This is the base r way of doing that, we should use dplyr
+# do.call("rbind", df1)
+# reduce(df1, rbind)
+
+```
+
+
+```{r}
+#.x is the object, .f is the function
+# urls <- map(.x = index, .f = function(i) str_glue({new_urls}, {index[i]}))
+# urls
+
+urls <- map(index, ~str_glue({new_urls}, {.x}))
+urls
+map_df(urls, ~read_html(.x) %>% 
+         html_table() %>% 
+         .[[1]] %>% 
+         janitor::clean_names() %>% 
+         mutate(across(everything(), as.character)))
+```
+
+
+## Group Activity 2
+
+1. Go to [scrapethissite](https://www.scrapethissite.com/pages/forms/) and extract the table on the front page.
+
+```{r}
+session1 <- read_html("https://www.scrapethissite.com/pages/forms/") %>% 
+  html_table() %>% 
+  .[[1]]
+```
+
+
+2. Find out the number of pages that contain the movie table, while looking for the changes in the url in the address bar. How does the url changes when you go to the next page? It goes from 1 to 23, with increments of 1
+
+
+
+
+3. Write a for loop to store all the data in multiple pages to a single data frame. Also, do the same using `purrr::map_df `.
+
+```{r}
+new_urls <- "https://www.scrapethissite.com/pages/forms/?page_num="
+
+# Create an empty list
+df1 <- list()
+
+# Generate a vector of indices
+index <- seq(1, 23, 1)
+
+urls <- map(index, ~str_glue({new_urls}, {.x}))
+urls
+map_df(urls, ~read_html(.x) %>% 
+         html_table() %>% 
+         .[[1]] %>% 
+         janitor::clean_names() %>% 
+         mutate(across(everything(), as.character))) -> final_data
+```
+
+
+

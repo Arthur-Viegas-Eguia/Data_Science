@@ -1,0 +1,162 @@
+---
+title: "Class Activity 13"
+author: "Arthur Viegas Eguia"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      size = "small", 
+                      collapse = TRUE, 
+                      comment = NA, 
+                      warning = FALSE, 
+                      message = FALSE,
+                      error = TRUE)
+
+# load the necessary libraries
+library(wordcloud)
+library(reshape2)
+library(tidyverse)
+library(tidyr)
+library(tidytext)
+library(dplyr)
+```
+
+
+\vspace*{1in}
+
+
+## Group Activity 1
+
+### a. Variance and Skewness 
+
+The variance of a random variable $x$ is defined as: 
+
+$$\operatorname{Var}(x)=\frac{1}{n-1} \sum_{i=1}^{n}\left(x_{i}-\bar{x}\right)^{2}$$
+
+where $x_i = (\sum_i^n x_i)/n$ is the sample mean. Also, the skewness of the random variable $x$ is defined as:
+
+$$\operatorname{Skew}(x)=\frac{\frac{1}{n-2}\left(\sum_{i=1}^{n}\left(x_{i}-\bar{x}\right)^{3}\right)}{\operatorname{Var}(x)^{3 /2}}$$
+
+Please write functions to calculate the variance and skewness of $\{12, 45, 54, 34, 56, 30, 67, \text{NA}\}$.
+
+```{r}
+x <- c(12, 45, 54, 34, 56, 30, 67, NA)
+```
+
+
+
+
+```{r}
+# function to calculate the variance of a vector
+var <- function(x){
+  x <- na.omit(x)
+  res <- (sum((x - mean(x))^2))/(length(x) - 1)
+  return(res)
+}
+```
+
+
+```{r}
+var(x)
+```
+
+
+
+```{r}
+# function to calculate the skewness of a vector
+skewness <- function(x){
+  x <- na.omit(x)
+  res <- sum((x - mean(x))^3)/((length(x) - 2) * var(x)^(3/2))
+  return(res)
+}
+```
+
+
+```{r}
+skewness(x)
+```
+
+
+--------------------------------------------------------------------
+
+## Group Activity 2
+
+
+```{r}
+musical_instr_reviews <-  read_csv("https://raw.githubusercontent.com/deepbas/statdatasets/main/musicreviews.csv") %>% 
+  rename(ratingOverall = overall)
+glimpse(musical_instr_reviews)
+```
+
+### a. Write a function to filter the dataset based on the provided rating:
+
+```{r}
+filter_reviews_by_rating <- function(dataset, review){
+  dataset %>% filter(ratingOverall == review)
+}
+filtered_data <- filter_reviews_by_rating(musical_instr_reviews, 4)
+```
+
+
+### b. Write a function to process the text and remove stop words:
+
+```{r}
+process_text <- function(data){
+  data %>%
+    select(reviewText) %>%
+    unnest_tokens(output = word,
+                  input = reviewText) %>% 
+    anti_join(stop_words)
+}
+process_text(filtered_data) -> process_data_4
+```
+
+
+### c. Write a function to join the processed text with sentiment data and create a word count table.
+
+```{r}
+create_word_count_table <- function(data){
+  data %>% 
+    inner_join(get_sentiments("bing")) %>% 
+  count(word, sentiment, sort = TRUE) %>% 
+  reshape2::acast(word ~ sentiment, value.var = "n", fill = 0)
+}
+
+
+```
+
+
+### d. Create the final function that takes the rating and number of words as input arguments and returns a word cloud plot. 
+
+```{r}
+library(wordcloud)
+library(reshape2)
+
+word_cloud <- function(rating, num.words) {
+ rating = as.numeric(rating)
+ num.words = as.numeric(num.words)
+ if(rating >= 1 & rating <= 5){
+   filtered_data <- filter_reviews_by_rating(musical_instr_reviews, rating)
+   processed_data <- process_text(filtered_data)
+   word_table <- create_word_count_table(processed_data)
+   wordcloud::comparison.cloud(word_table, colors = c("blue", "green"), 
+                               scale = c(2, 0.5),
+                               max.words = num.words,
+                               title.size = 2)
+ }
+ else warning("Please enter a number from 1 to 5")
+}
+word_cloud(rating = "4", num.words = 50)
+```
+
+
+
+
+
+
+

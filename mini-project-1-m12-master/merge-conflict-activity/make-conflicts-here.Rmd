@@ -1,0 +1,31 @@
+---
+title: "Let's cause a merge conflict!"
+author: "TEAM NAME"
+output: pdf_document
+---
+
+## Code chunk to change
+
+```{r echo=FALSE, message=FALSE, eval=TRUE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+
+# Prepare the dataset
+mtcars_modified <- mtcars %>%
+  mutate(weight_hp_ratio = wt / hp, 
+         weight_mpg_ratio = wt / mpg)
+
+# Create the ggplot
+mtcars_modified %>%
+  ggplot(aes(x = weight_hp_ratio, y = weight_mpg_ratio, color = factor(gear))) + 
+    geom_point() +
+    geom_smooth(color = "black") +
+    scale_color_viridis_d() +
+    labs(x = "Weight to horsepower ratio (wt / hp)", 
+         y = "Weight to miles per gallon ratio (wt / mpg)", 
+         color = "Gears",
+         title = "Weight ratios vs. horsepower and miles per gallon",
+         subtitle = "by number of gears") +
+    theme_minimal()
+```
+

@@ -1,0 +1,106 @@
+---
+title: "Class Activity 16"
+author: "Your name here"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+format:
+  pdf: default
+  html:
+    df_print: paged
+editor: visual
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  error: true
+---
+
+```{r setup, include=FALSE}
+# load the necessary libraries
+library(tidyverse)
+library(stringr)
+library(purrr)
+library(polite)
+library(rvest)
+```
+
+\vspace*{1in}
+
+## Group Activity 1
+
+### a. Scrape the first table in `List_of_NASA_missions` wiki page. Additionally, use `janitor::clean_names()` to clean the column names and store the resulting table as `NASA_missions.csv` in your working folder.
+
+```{r}
+wiki_NASA <- "https://en.wikipedia.org/wiki/List_of_NASA_missions"
+
+# Scrape the data and write the first table to a CSV file
+bow(wiki_NASA) %>% 
+  scrape() %>% 
+  
+```
+
+### b. Now, write a code snippet to scrape all the URLs from the anchor tags (<a>) on a given Wikipedia page, convert the relative URLs to absolute URLs, and store the results in a tibble and save it as `NASA_missions_urls.csv` in your working folder.
+
+```{r}
+# Scrape the data and write the URLs to a CSV file
+bow(wiki_NASA) %>% 
+  scrape() %>% 
+ 
+```
+
+## Group Activity 2
+
+### a. Scrape player statistics from the given [web page](https://fbref.com/en/squads/b8fd03ef/Manchester-City-Stats), clean and reformat the data table headers using R packages, and create a bar chart to display the top ten players by playing time starts.
+
+Start by extracting a table from a webpage using the `rvest` package, then clean the headers by merging them with `subheaders` and using `janitor` to standardize the names.
+
+```{r}
+mancity <- "https://fbref.com/en/squads/b8fd03ef/Manchester-City-Stats"
+
+data <- bow(mancity) %>%
+  scrape() %>%
+
+```
+
+```{}
+```
+
+Analyze the 'playing_time_starts' to find the top ten players and visualize this data in a bar chart using ggplot2, ensuring the chart is both informative and aesthetically pleasing.
+
+```{r}
+data_clean_plot <- data_clean %>%
+  mutate(
+    playing_time_starts = , 
+    player = 
+  ) %>%
+  arrange(desc(playing_time_starts)) %>%
+  top_n(10, playing_time_starts)
+
+ggplot(data_clean_plot, aes(x = reorder(player, -playing_time_starts), y = playing_time_starts, fill = player)) +
+  geom_bar(stat = "identity") + 
+  labs(title = "Top 10 Players by Playing Time Starts",
+       x = "Player",
+       y = "Playing Time Starts") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), 
+        legend.title = element_blank()) + 
+  scale_fill_viridis_d() 
+```
+
+------------------------------------------------------------------------
+
+# Group Activity 3
+
+In this activity, you'll scrape web data using `rvest` and tidy up the results into a well-formatted table from this [web page](https://realpython.github.io/fake-jobs/). Start by extracting job titles from a given URL, then gather the associated company names, and trim any leading or trailing whitespace from the location data. Next, retrieve the posting dates and the URLs for the full job descriptions. Finally, combine all these elements into a single dataframe, ensuring that each piece of information aligns correctly. Your task is to produce a clean and informative table that could be useful for job seekers. o facilitate the selection of the correct CSS selectors, you may find the `SelectorGadget` Chrome extension particularly useful.
+
+```{r}
+url <- "https://realpython.github.io/fake-jobs/"
+
+title <- bow(url) %>% scrape() %>%    # part 1
+company <- bow(url) %>% scrape() %>%  # part 2
+location <- bow(url) %>% scrape() %>%  # part 3
+time <- bow(url) %>% scrape() %>%  # part 4
+html <- bow(url) %>% scrape() %>%    # part 5
+
+# Create a dataframe
+tibble(title = title, company = company, location = location, time = time, html = html) # part 6
+```

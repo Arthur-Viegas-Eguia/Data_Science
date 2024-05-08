@@ -1,0 +1,73 @@
+---
+output: github_document
+---
+
+# Mini Project 1: Data Visualization and Wrangling
+
+## Due date
+
+This mini project is due on GitHub by Wednesday, May 01 at midnight.
+
+## Description
+
+You will work with a partner to analyze Coronavirus data contained in the [`coronavirus` R package](https://ramikrispin.github.io/coronavirus/index.html) and to write a short blog summarizing your findings. You will need to define your own question(s) of interest based on your interests---the topic is up to you. Please incorporate both coronavirus infection and vaccination information in your analysis. The best projects will:
+
+- discuss an interesting and well-motivated topic
+- involve some non-trivial data wrangling (not just a bunch of `mutate()`s)
+- provide a well thought-out, informative analysis
+- convey some sort of insight
+- be well-written
+- consist of 500–700 words
+
+Your goal is to use the data wrangling and visualization techniques from this class to tell an interesting story about any aspect of coronavirus disease in a particular geographical entity (or the whole world, your choice!). Write your analysis in the form of blog post in R Markdown and use the data visualization and wrangling tools you learned in this course. 
+
+Please include at least one well-crafted, thoughtfully-prepared data graphic incorporating maps that conveys useful information. Please include at least one well-crafted, thoughtfully prepared data graphic that incorporates maps and conveys useful information. A good project would feature one map visualization and one time trend plot, among others. Feel free to use `ggplot2` graphics and other libraries used in the course to help tell your story. You will upload your R Markdown (.Rmd) file and knitted PDF to GitHub. Do not forget to give your post an informative title! 
+
+Do not print your code in your PDF, rather make sure to hide it from the knitted document, but know that I will open your .Rmd to grade your code --- so be sure to be organized and make good use of comments!
+
+## Data
+
+The data for this project come from the Johns Hopkins University Center for Systems Science and Engineering (JHU CCSE) Coronavirus, and are updated everyday. These data are available in the `coronavirus` R package as `coronavirus` and `covid19_vaccine` datasets. Be sure to read the [package documentation](https://cran.r-project.org/web/packages/coronavirus/index.html), [data source](https://systems.jhu.edu/research/public-health/ncov/) and check the [author's GitHub page](https://github.com/RamiKrispin/coronavirus) for useful directions!! **It is your responsibility to know what data you are working with!**
+
+To get a list of the available data sets, run the following code:
+
+```{r eval = FALSE}
+# install.packages("devtools")
+devtools::install_github("RamiKrispin/coronavirus")
+library(coronavirus)
+?coronavirus
+```
+
+
+
+## Grading Rubric
+
+
+**Technical aspects**
+
+| Topic                                          | Excellent: 10 | Good: 7.5 | Satisfactory: 5 | Needs work: 2.5 |
+|------------------------------------------------|---------------|-----------|----------------|----------------|
+| Coding style | Group has gone beyond what was expected and required, coding style is followed, code is well commented | Group mostly follows coding style, code is readable and has some comments, but with some inconsistencies | Coding style lacks refinement and has some errors, but code is readable and has some comments | Many errors in coding style, little attention paid to making the code human readable |
+| Coding strategy | Complicated problem broken down into sub-problems that are individually much simpler. Code is efficient, correct, and minimal. Code uses appropriate data structure (list, data frame, vector/matrix/array). Code checks for common errors | Code is mostly efficient, correct, and minimal, with occasional deviations. Uses appropriate data structures and checks for some errors | Code is correct, but could be edited down to leaner code. Some "hacking" instead of using suitable data structure. Some checks for errors. | Code tackles complicated problem in one big chunk. Code is repetitive and could easily be functionalized. No anticipation of errors. |
+| Presentation: graphs | Graph(s) carefully tuned for desired purpose. Careful styling highlights important features, and attention is paid to labels, colors, and scales. | Graph(s) well chosen and styled, but with a few minor problems: inappropriate aspect ratios, poor labels, or sub optimal color choices. | Graph(s) well chosen, but with some issues: inappropriate aspect ratios, poor labels, or lack of attention to detail in styling. | Graph(s) poorly chosen to support questions, with little attention paid to styling, labels, or appropriate visualization type. |
+| Achievement, mastery, cleverness, creativity | Student has gone beyond what was expected and required, e.g., extraordinary effort, additional tools not addressed by this course, unusually sophisticated application of tools from course. | Student displays a high level of mastery and creativity, but without extraordinary effort or additional tools | Tools and techniques from the course are applied very competently and, perhaps, somewhat creatively. Chosen task was acceptable, but fairly conservative in ambition. | Student does not display the expected level of mastery of the tools and techniques in this course. Chosen task was too limited in scope. |
+| Ease of access, compliance with course conventions for submitted work | Access as easy as possible, code runs, .Rmd knits without error or extra messages, everything is on time | Code runs and .Rmd knits with minor issues, mostly complies with course conventions and is on time | Code runs, but .Rmd may have some issues knitting or generate extra messages; some deviations from course conventions, but overall acceptable; submitted work may be slightly late | Not an earnest effort to reduce friction and comply with conventions and/or code does not run |
+
+
+
+**Data wrangling**
+
+| Topic                                          | Excellent: 10 | Good: 7.5 | Satisfactory: 5 | Needs work: 2.5 |
+|------------------------------------------------|---------------|-----------|----------------|----------------|
+| Joining data:<br>Achievement, mastery, cleverness, creativity | Group has gone beyond what was expected and required, e.g., extraordinary effort, additional tools not addressed by this course, unusually sophisticated application of tools from course. | Group has applied tools and techniques competently and creatively, but without extraordinary effort or additional tools. | Tools and techniques from the course are applied very competently and, perhaps, somewhat creatively. Chosen task was acceptable, but fairly conservative in ambition. | Group does not display the expected level of mastery of the tools and techniques in this course. Chosen task was too limited in scope. |
+| Single table wrangling:<br>Achievement, mastery, cleverness, creativity | Group has gone beyond what was expected and required, e.g., extraordinary effort, additional tools not addressed by this course, unusually sophisticated application of tools from course. | Group has applied tools and techniques competently and creatively, but without extraordinary effort or additional tools. | Tools and techniques from the course are applied very competently and, perhaps, somewhat creatively. Chosen task was acceptable, but fairly conservative in ambition. | Group does not display the expected level of mastery of the tools and techniques in this course. Chosen task was too limited in scope. |
+
+
+**Communication**
+
+| Topic                 | Excellent: 10 | Good: 7.5 | Satisfactory: 5 | Needs work: 2.5 |
+|-----------------------|---------------|-----------|----------------|----------------|
+| Data introduction | Clearly and concisely describes the data set, and why it is of interest. Establishes an engaging story (i.e., set of questions) that will be told. | Introduction and story are clear, but could be more engaging; provides context and motivation but lacks some detail. | Introduction and story outlined, but could be clearer or more engaging; context and motivation are present but may not be strong. | Context and motivation is lacking; story unclear or not well-defined. |
+| Results | Results are clearly explained in an engaging way. The questions posed are clearly answered. Potential limitations are outlined and discussed. | Results are clear and engaging, but some minor improvements could be made; most questions are answered and some limitations are addressed. | Results are explained, and the questions posed are answered; limitations may be mentioned but not discussed in detail. | Results are not completely explained and/or questions are left unanswered; limitations are not addressed. |
+| Code review           | Extensive evidence that group members are giving constructive feedback on each other's code, leading to better code. | Evidence that group members are giving feedback on each other's code, with some room for improvement. | Some evidence that group members are giving constructive feedback on each other's code, leading to better code. | Little evidence that group members are giving constructive feedback on each other's code. |
+

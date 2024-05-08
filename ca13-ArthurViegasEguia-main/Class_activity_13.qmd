@@ -1,0 +1,123 @@
+---
+title: "Class Activity 13"
+author: "Your name here"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+format:
+  pdf: default
+  html:
+    df_print: paged
+editor: visual
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  error: true
+---
+
+```{r setup, include=FALSE}
+# load the necessary libraries
+library(wordcloud)
+library(reshape2)
+library(tidyverse)
+library(tidyr)
+library(tidytext)
+library(dplyr)
+```
+
+
+\vspace*{1in}
+
+
+## Group Activity 1
+
+### a. Variance and Skewness 
+
+The variance of a random variable $x$ is defined as: 
+
+$$\operatorname{Var}(x)=\frac{1}{n-1} \sum_{i=1}^{n}\left(x_{i}-\bar{x}\right)^{2}$$
+
+where $x_i = (\sum_i^n x_i)/n$ is the sample mean. Also, the skewness of the random variable $x$ is defined as:
+
+$$\operatorname{Skew}(x)=\frac{\frac{1}{n-2}\left(\sum_{i=1}^{n}\left(x_{i}-\bar{x}\right)^{3}\right)}{\operatorname{Var}(x)^{3 /2}}$$
+
+Please write functions to calculate the variance and skewness of $\{12, 45, 54, 34, 56, 30, 67, \text{NA}\}$.
+
+```{r}
+x <- c(12, 45, 54, 34, 56, 30, 67, NA)
+```
+
+
+
+```{r}
+# function to calculate the variance of a vector
+var <-
+```
+
+
+```{r}
+var(x)
+```
+
+
+
+```{r}
+# function to calculate the skewness of a vector
+skewness <-
+```
+
+
+```{r}
+skewness(x)
+```
+
+
+--------------------------------------------------------------------
+
+## Group Activity 2
+
+
+```{r}
+musical_instr_reviews <-  read_csv("https://raw.githubusercontent.com/deepbas/statdatasets/main/musicreviews.csv") %>% 
+  rename(ratingOverall = overall)
+glimpse(musical_instr_reviews)
+```
+
+### a. Write a function to filter the dataset based on the provided rating:
+
+```{r}
+filter_reviews_by_rating <- 
+```
+
+
+### b. Write a function to process the text and remove stop words:
+
+```{r}
+process_text <- 
+```
+
+
+### c. Write a function to join the processed text with sentiment data and create a word count table.
+
+```{r}
+create_word_count_table <- 
+```
+
+
+### d. Create the final function that takes the rating and number of words as input arguments and returns a word cloud plot. 
+
+```{r}
+library(wordcloud)
+library(reshape2)
+
+word_cloud <- function(rating, num.words) {
+ 
+}
+word_cloud(rating = "4", num.words = 300)
+```
+
+
+
+
+
+
+

@@ -1,0 +1,211 @@
+---
+title: "Class Activity 11"
+author: "Your name here"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+format:
+  pdf: default
+  html:
+    df_print: paged
+editor: visual
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  error: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      size = "small", 
+                      collapse = TRUE, 
+                      comment = NA, 
+                      warning = FALSE, 
+                      message = FALSE,
+                      error = TRUE)
+
+# load the necessary libraries
+library(tidyverse)
+library(stringr)
+```
+
+
+\vspace*{1in}
+
+
+## Problem 1
+
+Let's learn about combining strings with different separators first.
+
+```{r}
+place <- "Central Park"
+activity <- "jogging"
+activities <- c("jogging", "picnicking", "boating")
+my_sentence <- str_c(place, " is great for ", activity, ".", sep = "")
+```
+
+
+a. What happens when a `str_c` entry is a vector?
+
+*Answer:* 
+
+```{r}
+my_sentences <- str_c(place, " is great for ", activities, ".", sep = "")
+```
+
+
+b. How do you combine strings with `str_glue`?
+
+*Answer:* 
+
+
+```{r}
+
+```
+
+
+c. What does `str_flatten` do?
+
+*Answer:* 
+
+
+```{r}
+
+```
+
+
+d. What will using a `\n` separator do in the command below?
+
+*Answer:* 
+
+
+```{r}
+
+```
+
+
+e. Does `str_length` count spaces and special characters??
+
+*Answer:* 
+
+
+```{r}
+
+```
+
+
+f. How do you count the number of `e`'s in a string?
+
+*Answer:* 
+
+
+```{r}
+text <- "The quick brown fox jumps over the lazy dog."
+pattern <- "e"
+vowel_count <- 
+```
+
+
+
+g. What happens with negative positions?
+
+*Answer:* 
+
+
+```{r}
+
+```
+
+
+h. How do you extract a `substring` with positive and negative positions?
+
+*Answer:* 
+
+
+```{r}
+my_sentence <- "Central Park is great for jogging."
+
+```
+
+
+i. With a vector of positions?
+
+*Answer:* 
+
+
+```{r}
+
+
+```
+
+
+j. How do you extract multiple `substrings` using a vector of positions?
+
+*Answer:* 
+
+
+```{r}
+
+```
+
+
+-----------------------------------------------------------------------
+
+## Problem 2
+
+a. Use the string parsing functions that you learned today to do tasks described in the comments below: 
+
+```{r}
+s1 <- "12%"  # remove %
+s2 <- "New Jersey_*"  # remove _*
+s3 <- "2,150"    # remove comma(,)
+s4 <- "Learning #datascience is fun!"   # extract #datascience
+s5 <- "123 Main St, Springfield, MA, 01101"   # separate info
+
+# Cleaning steps
+s1_clean <- 
+s2_clean <- 
+s3_clean <- 
+s4_clean <- 
+s5_clean <- 
+
+# Print cleaned strings
+s1_clean
+s2_clean
+s3_clean
+s4_clean
+s5_clean
+```
+
+
+## Problem 3
+
+a. Let's look at the following dataset containing information about movies and their release years. We'll extract the release year from the movie title, create a new column with decades, and count the number of movies in each decade.
+
+
+```{r}
+# Sample dataset
+movies <- tibble(
+  title = c(
+    "The Godfather (1972)", "Pulp Fiction (1994)", "The Dark Knight (2008)",
+    "Forrest Gump (1994)", "The Shawshank Redemption (1994)", "The Matrix (1999)",
+    "Inception (2010)", "Interstellar (2014)", "Parasite (2019)", "Fight Club (1999)"
+  )
+)
+movies
+```
+
+
+```{r}
+# Processing the dataset
+movies_processed <- movies %>%
+  mutate(
+    release_year = ),
+    decade = 
+  ) %>%
+  count() 
+
+# Print the processed dataset
+movies_processed
+```
+
+

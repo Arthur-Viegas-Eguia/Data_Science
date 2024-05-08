@@ -1,0 +1,102 @@
+---
+title: "Class Activity 10"
+author: "Your name here"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+format:
+  pdf: default
+  html:
+    df_print: paged
+editor: visual
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  error: true
+---
+
+```{r setup, include=FALSE}
+# load the necessary libraries
+library(tidyverse)
+library(tidyr)
+library(forcats)
+```
+
+\vspace*{1in}
+
+## Your Turn 1
+
+```{r}
+students <- tibble(
+  id = 1:24,
+  grade = sample(c("9th", "10th", "11th"), 24, replace = TRUE),
+  region = sample(c("North America", "Europe", "Asia", "South America", "Middle East", "Africa"), 24, replace = TRUE),
+  score = round(runif(24,50, 100))
+)
+```
+
+### a. Create a new column `grade_fac` by converting the grade column into a factor. Reorder the levels of `grade_fac` to be "9th", "10th", and "11th". Sort the dataset based on the `grade_fac` column.
+
+*Answer:*
+
+```{r}
+students_a <- 
+```
+
+### b. Create a new column `region_fac` by converting the `region` column into a factor. Collapse the `region_fac` levels into three categories: "Americas", "EMEA" and "Asia". Count the number of students in each collapsed region category.
+
+```{r}
+students_b <- students_a 
+```
+
+### c. Create a new column `grade_infreq` that is a copy of the `grade_fac` column. Reorder the levels of `grade_infreq` based on their frequency in the dataset. Print the levels of `grade_infreq` to check the ordering.
+
+```{r}
+students_c <- students_a 
+```
+
+### d. Create a new column `grade_lumped` by lumping the least frequent level of the `grade_fac` column into an 'Others' category.
+
+Count the number of students in each of the categories of the `grade_lumped` column.
+
+```{r}
+students_d <- 
+```
+
+## Your Turn 2
+
+Lets import the `gss_cat` dataset from the `forcats` library. This dataset contains a sample of categorical variables from the General Social survey.
+
+```{r}
+# import gss_cat dataset from forcats library
+forcats::gss_cat
+```
+
+Use `gss_cat` to answer the following questions.
+
+### a. Which religions watch the least TV?
+
+```{r}
+# your r-code
+
+gss_cat %>%
+ 
+```
+
+### b. Do married people watch more or less TV than single people?
+
+```{r}
+# your r-code
+
+gss_cat %>%
+
+```
+
+c.  Collapse the `marital` variable to have levels `Married`, `Not_married`, and `No_answer` . Include `"Never married"`, `"Divorced"`, and "`Widowed"` in `Not_married`
+
+```{r}
+# your r-code
+
+gss_cat %>%
+  
+
+```

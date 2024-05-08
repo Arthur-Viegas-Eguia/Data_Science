@@ -1,0 +1,213 @@
+---
+title: "Class Activity 11"
+author: "Arthur Viegas Eguia"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      size = "small", 
+                      collapse = TRUE, 
+                      comment = NA, 
+                      warning = FALSE, 
+                      message = FALSE,
+                      error = TRUE)
+
+# load the necessary libraries
+library(tidyverse)
+library(stringr)
+```
+
+
+\vspace*{1in}
+
+
+## Problem 1
+
+Let's learn about combining strings with different separators first.
+
+```{r}
+place <- "Central Park"
+activity <- "jogging"
+activities <- c("jogging", "picnicking", "boating")
+my_sentence <- str_c(place, " is great for ", activity, ".", sep = "")
+```
+
+
+a. What happens when a `str_c` entry is a vector?
+
+*Answer:* In this case, without the vector, it prints "Central Park is great for jogging." With the vector, it will print  an array, with one item for each item in the array. So, like  "Central Part is great for jogging.", "Central Part is great for picknicking", "Central Part is great for boating." THis happens because it will print all, separated items in the list concatenated with the rest of the sentence. 
+
+```{r}
+my_sentences <- str_c(place, " is great for ", activities, ".", sep = "")
+my_sentences
+```
+
+
+b. How do you combine strings with `str_glue`?
+
+*Answer:* 
+
+
+```{r}
+str_glue("{place} is great for {activity}.")
+```
+
+
+c. What does `str_flatten` do?
+
+*Answer:* This will concatenate all of the sentences into a single string, they will be divided by a whitespace as it is the defined separator. 
+
+
+```{r}
+str_flatten(my_sentences, collapse = " ")
+```
+
+
+d. What will using a `\n` separator do in the command below?
+
+*Answer:* Will also print the `\n` in the string. 
+
+
+```{r}
+str_c(place, "is great for", activity, sep = "\n")
+```
+
+
+e. Does `str_length` count spaces and special characters??
+
+*Answer:* It does count `\n`, but it is counted as a single character. 
+
+
+```{r}
+str_length(str_c(place, "is great for", activity))
+str_length(str_c(place, "is great for", activity, sep = "\n"))
+```
+
+
+f. How do you count the number of `e`'s in a string?
+
+*Answer:* use the pattern.
+
+```{r}
+text <- "The quick brown fox jumps over the lazy dog."
+pattern <- "e"
+vowel_count <- str_count(text, pattern = pattern)
+```
+
+
+
+g. What happens with negative positions?
+
+*Answer:* This returns the last elements of the array. All the characters from the 7th to the first part of the string. 
+
+
+```{r}
+str_sub(text, start = 1, end = 7)
+str_sub(text, start = -7, end = -1)
+
+```
+
+
+h. How do you extract a `substring` with positive and negative positions?
+
+*Answer:* Goes from the positive index, until the other, counted from the end of the string. 
+
+
+```{r}
+my_sentence <- "Central Park is great for jogging."
+str_sub(sentences[3], start = 1, end = 7)
+str_sub(sentences[3], start = -7, end = -1)
+str_sub(sentences[3], start = 5, end = -3)
+```
+
+
+i. With a vector of positions?
+
+*Answer:* 
+
+
+```{r}
+str_sub(my_sentence, start = c(1, 9), end = c(7, 12))
+str_sub(my_sentence, start = c(1, 9, 27), end = c(7, 12, -2))
+```
+
+
+j. How do you extract multiple `substrings` using a vector of positions?
+
+*Answer:* 
+
+
+```{r}
+
+str_sub(my_sentence, start = c(1, 9, 27), end = c(7, 12, -2))
+```
+
+
+--------------------------------------------------------------------------------
+
+## Problem 2
+
+a. Use the string parsing functions that you learned today to do tasks described in the comments below: 
+
+```{r}
+s1 <- "12%"  # remove %
+s2 <- "New Jersey_*"  # remove _*
+s3 <- "2,150"    # remove comma(,)
+s4 <- "Learning #datascience is fun!"   # extract #datascience
+s5 <- "123 Main St, Springfield, MA, 01101"   # separate info
+
+# Cleaning steps
+s1_clean <- str_remove(s1, "%"); s1_clean
+s2_clean <- str_remove(s2, "_\\*"); s2_clean
+s3_clean <- parse_number(s3); s3_clean
+s3_clean <- str_replace(s3, ",", ""); s3_clean
+s4_clean <- str_extract(s4, "#\\w+");s4_clean
+s5_clean <- str_split(s5, ",");s5_clean
+
+# Print cleaned strings
+s1_clean
+s2_clean
+s3_clean
+s4_clean
+s5_clean
+```
+
+
+
+## Problem 3
+
+a. Let's look at the following dataset containing information about movies and their release years. We'll extract the release year from the movie title, create a new column with decades, and count the number of movies in each decade.
+
+
+```{r}
+# Sample dataset
+movies <- tibble(
+  title = c(
+    "The Godfather (1972)", "Pulp Fiction (1994)", "The Dark Knight (2008)",
+    "Forrest Gump (1994)", "The Shawshank Redemption (1994)", "The Matrix (1999)",
+    "Inception (2010)", "Interstellar (2014)", "Parasite (2019)", "Fight Club (1999)"
+  )
+)
+movies
+```
+
+
+```{r}
+# Processing the dataset
+movies_processed <- movies %>%
+  mutate(
+    release_year = as.numeric(str_extract(title, pattern = "\\d{4}")) ,
+    decade = floor(release_year/10) *10 
+  ) %>%
+  count() 
+
+# Print the processed dataset
+movies_processed
+```
+
+

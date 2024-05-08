@@ -1,0 +1,236 @@
+---
+title: "Class Activity 18"
+author: "Your name here"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+format:
+  html:
+    df_print: paged
+    editor: visual
+server: shiny
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  error: true
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(shiny)
+library(readr)
+library(janitor)
+library(purrr)
+library(lubridate)
+library(plotly)
+library(DT)
+library(ggthemes)
+library(rvest)
+library(polite)
+```
+
+## Basic Shiny App for Tracking COVID-19 Trends
+
+The Shiny app you are developing will allow users to interactively select parameters such as month, year, and county to visualize COVID-19 trends in Minnesota based on real-time data scraping and manipulation.
+
+### Read Data
+
+```{r}
+table_usafacts <- bow(url = "https://usafacts.org/visualizations/coronavirus-covid-19-spread-map/state/minnesota") %>%
+  scrape() %>%  html_nodes("a") %>%       # find all links
+  html_attr("href") %>%     # get the url
+  str_subset(".csv")        # find those that end in csv
+```
+
+```{r}
+library(lubridate)
+covid_data <- read_csv(table_usafacts[2]) %>% filter(State == "MN") %>% 
+  select(-countyFIPS, -StateFIPS, -State) %>% 
+  slice(-1) %>% 
+  pivot_longer(-1, names_to = "Dates", values_to = "Cases") %>% 
+  janitor::clean_names() %>% 
+  mutate(county_name = str_remove(county_name, " County"), 
+         dates = ymd(dates), 
+         counties = factor(county_name), 
+         month = month(dates), 
+         year = year(dates)) %>%
+  select(-county_name)
+head(covid_data)
+```
+
+```{r}
+# County level data
+county_names <- covid_data %>% pull(counties) %>% unique()
+county_data <- map(county_names, ~filter(covid_data, counties == .x))
+```
+
+You're already given the code to scrape, clean, and manipulate the data. Ensure that the data frame `covid_data` is correctly formatted, with each row representing a unique combination of date and county case counts. The transformations include:
+
+-   Pivoting the data to a long format where each date-case pair is a row.
+-   Cleaning column names and extracting relevant date components (e.g., month, year).
+
+### Building the Shiny UI
+
+The `ui` object defines the layout and appearance of your app. Start with a basic structure:
+
+-   `Title Panel`: Displays the title of your app at the top.
+-   `Sidebar Layout`: Contains two main parts:
+    -   `Sidebar Panel`: Includes interactive controls like sliders, radio buttons, and dropdown menus to filter the data.
+    -   `Main Panel`: Displays the outputs (graphs and tables) based on user inputs.
+
+```{r}
+ui <- fluidPage(
+  titlePanel(" "),
+  sidebarLayout(
+    sidebarPanel(" "),
+    mainPanel(" ")
+  )
+)
+
+server <- function(input, output) {}
+shinyApp(ui = ui, server = server)
+```
+
+### Adding Interactive Inputs
+
+Populate the sidebar with input controls: - `Sliderinput`: Allows selection of the range of months. - `RadioButtons`: Enables choosing the year. - `SelectInput`: Dropdown to select the county from available data.
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Tracking Covid in Minnesota"),
+  sidebarLayout(
+    sidebarPanel(
+      
+      
+      
+    ),
+    mainPanel("")
+  )
+)
+
+server <- function(input, output) {}
+shinyApp(ui = ui, server = server, options = list(height = 800))
+```
+
+### Configuring Outputs in UI
+
+Define placeholders in the main panel where outputs will be rendered:
+
+-   `plotOutput`: To display trend plots.
+-   `tableOutput`: To show data tables.
+
+```{r}
+#| standalone: true
+ui <- fluidPage(
+  titlePanel("Tracking Covid in Minnesota"),
+  sidebarLayout(
+    sidebarPanel(
+      
+      
+    ),
+    mainPanel(
+      
+      
+    )
+  )
+)
+
+server <- function(input, output) {}
+shinyApp(ui = ui, server = server, options = list(height = 800))
+```
+
+## Writing the Server Function
+
+The `server` part of your Shiny app listens for changes in the inputs and dynamically updates the outputs. Here's how you can set it up:
+
+-   `Reactive Expression`: Creates a subset of `covid_data` based on user inputs. This reactive expression ensures that any change in inputs automatically triggers data filtering.
+-   Render Functions:
+    -   `renderPlot`: Generates and renders a plot based on the filtered data.
+    -   `renderDataTable`: Displays the filtered data as a table.
+
+### Running the App
+
+```{r}
+server <- function(input, output) {
+    filtered_data <- reactive({
+    
+      
+      
+      })
+
+    output$plot <- renderPlot({
+  
+      
+      
+      
+      })
+
+    output$table <- DT::renderDataTable({
+        filtered_data()})
+        
+}
+```
+
+```{r, out.width = "300%"}
+app <- shinyApp(ui = ui, server = server, options = list(height = 1200))
+app
+```
+
+### **(Time permitting)** Additional Layout
+
+To enhance your Shiny app, first install and load the `shinythemes` package to access additional aesthetic themes. Update your UI to utilize a `navbarPage` structure, incorporating `tabPanel` elements to separate the plot and data table into distinct tabs. Apply one of the themes, such as "cerulean", to improve the visual appeal and user experience of your app. Replace the month and year selection inputs in your Shiny app with a `dateRangeInput` to allow users to select a specific date range for viewing COVID-19 trends.
+
+```{r}
+library(shinythemes)
+
+ui1 <- navbarPage(theme = shinytheme("cerulean"), title = "Tracking Covid in Minnesota",
+  tabPanel("Plot",
+    fluidPage(
+      titlePanel("Covid Trends by County"),
+      sidebarLayout(
+        sidebarPanel(
+          ## FILL IN HERE  
+        ),
+        mainPanel(
+          plotOutput(outputId = "plot")
+        )
+      )
+    )
+  ),
+  tabPanel("Data",
+    fluidPage(
+      titlePanel("Covid Data Table"),
+      sidebarLayout(
+        sidebarPanel(),  
+        mainPanel(
+          DT::dataTableOutput(outputId = "table")
+        )
+      )
+    )
+  )
+)
+
+
+server1 <- function(input, output) {
+  filtered_data <- reactive({
+    subset(covid_data, 
+           counties %in% input$dv &
+           dates >= input$dateRange[1] & dates <= input$dateRange[2])
+  })
+
+  output$plot <- renderPlot({
+    data <- filtered_data()  
+    ggplot(data, aes(x = dates, y = cases, color = counties)) +
+      geom_point(alpha = 0.5, color = "blue") +
+      labs(y = "Number of Cases", x = "Date") +
+      theme_minimal()
+  })
+
+
+  output$table <- DT::renderDataTable({
+    filtered_data()  
+  })
+}
+
+app1 <- shinyApp(ui = ui1, server = server1, options = list(height = 1200))
+app1
+```

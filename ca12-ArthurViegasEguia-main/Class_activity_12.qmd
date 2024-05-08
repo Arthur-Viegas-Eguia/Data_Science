@@ -1,0 +1,191 @@
+---
+title: "Class Activity 12"
+author: "Your name here"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+format:
+  pdf: default
+  html:
+    df_print: paged
+editor: visual
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  error: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      size = "small", 
+                      collapse = TRUE, 
+                      comment = NA, 
+                      warning = FALSE, 
+                      message = FALSE,
+                      error = TRUE)
+
+# load the necessary libraries
+library(stringr)
+library(dplyr)
+library(readr)
+```
+
+In this tutorial, we will learn about string manipulations using regular expressions and the `stringr` library in R. We will cover different examples and use cases to help you understand the concepts and functions related to string manipulation.
+
+## Group Activity 1
+
+```{r}
+x <- "My SSN is 593-29-9502 and my age is 55"
+y <- "My phone number is 612-643-1539"
+z <- "My old SSN number is 39532 9423."
+out <- str_flatten(c(x,y,z), collapse = ". ")
+```
+
+### a. What characters in `x` will `str_view_all(x, "-..-")` find?
+
+*answer:*
+
+```{r}
+
+```
+
+### b. What pattern will `str_view_all(x, "-\\d{2}-")` find?
+
+*answer:*
+
+```{r}
+ 
+```
+
+### c. What pattern will `str_view_all(out, "\\d{2}\\.*")` find?
+
+*answer:*
+
+```{r}
+
+```
+
+### d. Use `str_view_all` to determine the correct regex pattern to identify all SSN in `out`
+
+*answer:*
+
+```{r}
+
+```
+
+This misses the oddly formatted SSN in the third entry. Rather than use a dash, we can specify the divider as `[-\\s]?` which allows either 0 or 1 occurrences of either a dash or space divider:
+
+```{r }
+
+```
+
+### e. Write a regular expression to extract dates in the format YYYY-MM-DD from a given text.
+
+```{r}
+date_pattern <- ""
+text <- "The event will take place on 2023-07-20 and end on 2023-07-22."
+str_extract_all(text, date_pattern)
+```
+
+*answer:*
+
+### f. Write a regular expression to extract all words that start with a capital letter in a given text.
+
+*answer:*
+
+```{r}
+capital_pattern <- ""
+text <- "Alice and Bob went to the Market to buy some Groceries."
+str_extract_all(text, capital_pattern)
+```
+
+------------------------------------------------------------------------
+
+## Group Activity 2
+
+Consider the following string:
+
+```{r}
+string1 <- "100 dollars 100 pesos"
+```
+
+### a. Explain why the following matches the first 100 and not the second.
+
+*answer:*
+
+```{r}
+str_view(string1, "\\d+(?= dollars)")
+```
+
+### b. Explain why the following matches the second 100 and not the first.
+
+*answer:*
+
+```{r}
+str_view(string1, "\\d+(?!\\d| dollars)")
+```
+
+Please take a look at `string2`:
+
+```{r}
+string2 <- "USD100 PESO100"
+```
+
+### c. Explain why the following matches the first 100 and not the second.
+
+*answer:*
+
+```{r}
+str_view(string2, "(?<=USD)\\d{3}")
+```
+
+### d. Explain why the following matches the second 100 and not the first.
+
+*answer:*
+
+```{r}
+str_view(string2, "(?<!USD)\\d{3}")
+```
+
+------------------------------------------------------------------------
+
+## Group Activity 3
+
+Now, we will use \`TrumpTweetData.csv\`, a dataset of tweets to demonstrate common tasks such as detecting patterns, filtering text, and summarizing string properties.
+
+```{r}
+tweets<- read_csv("https://raw.githubusercontent.com/deepbas/statdatasets/main/TrumpTweetData.csv")
+```
+
+### a. What proportion of tweets (text) mention "America"?
+
+```{r}
+tweets %>% 
+  summarize(prop = mean(str_detect(str_to_title(text), "America"))) 
+```
+
+### b. What proportion of these tweets include "great"?
+
+```{r}
+tweets %>% 
+  
+```
+
+### c. What proportion of the tweets mention `@`?
+
+```{r}
+tweets %>% 
+```
+
+### d. Remove the tweets having mentions `@`.
+
+```{r}
+Mentions <- c("@[^\\s]+")
+
+tw_noMentions <- tweets %>% 
+```
+
+### e. What poportion of tweets originated from an iPhone?
+
+```{r}
+tweets %>% 
+```

@@ -1,0 +1,76 @@
+---
+title: "Class Activity 15"
+author: "Your name here"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+format:
+  pdf: default
+  html:
+    df_print: paged
+editor: visual
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  error: true
+---
+
+```{r setup, include=FALSE}
+# load the necessary libraries
+library(tidyverse)
+library(stringr)
+library(purrr)
+
+
+energy <- read_csv("https://raw.githubusercontent.com/deepbas/statdatasets/main/energy.csv",
+                    col_type = cols(
+                     .default = col_double(), 
+                      Timestamp = col_datetime(format = ""),
+                      dayWeek = col_factor(levels=c("Mon","Tues","Wed","Thurs","Fri","Sat","Sun"))
+                     ))
+```
+
+
+\vspace*{1in}
+
+
+## Group Activity 1
+
+### a. Write a for loop to iterate over the columns of the 'energy' dataset and print the names of all columns containing the string "House". Please use the function `colnames()` to extract the column names and store the results in a list.
+
+*Answer:*
+
+
+
+
+### b. Using a for loop, calculate and print the mean energy consumption of houses you identified in part a.
+
+
+
+-------------------------------------------------------------------------------------
+
+## Group Activity 2
+
+
+**1.** Make a data frame of quantiles for `energy` buildings in columns 9-90 (you will need `na.rm = TRUE`)
+
+
+
+
+**2.**  Add a variable to identify the quantile
+
+
+
+
+**3.**  Reshape the data frame to make variables `stat` (describing the quantile), `building` and `quant` (quantile value)
+
+
+
+
+**4.**  Plot the KWH value for each quantile on the x-axis for the buildings `Sayles-Hill`, `Center_for_Mathematics_&_Computing`, `Olin_Hall_of_Science`
+
+
+
+
+
+
+

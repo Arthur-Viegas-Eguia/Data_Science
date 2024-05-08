@@ -1,0 +1,266 @@
+---
+title: "Mini Project 1"
+author: "Arthur Viegas Eguia, Lucas Wcislo"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+Arthur and Lucas did pair programming for a good chunk of this project.
+
+## Introduction
+
+The COVID pandemic had a very distinct impact in different countries. After all, different countries have different economies, different levels of infrastructure, and implemented different policies. This begs the question on how neighboring countries were impacted by the virus. With this in mind, we will be comparing the US and Mexico: two countries that have a large landmass and a big population, but have very distinct cultures, societies and economies. To do so, we are using a data set from the Johns Hopkins University Center for Systems Science and Engineering (JHU CCSE), with information such as the daily number of new cases, daily number of deaths deaths and the population of each country, among other data.
+
+In this project, we will be analyzing the peaks and trends of new confirmed cases of both countries, and the number of COVID deaths per country in 2020, which is before the first vaccine was [widely available](https://www.supremecourt.gov/opinions/urls_cited/ot2021/21a90/21a90-1.pdf). After that, we will get the number of cases once the vaccine was available and see whether and analyze the proportion of the population vaccinated and number of cases. We are interested in comparing and contrasting both countries and answering how well each country did in the pandemic.
+
+
+```{r, echo = FALSE, include = FALSE}
+#Libraries we are going to use
+library(coronavirus)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(lubridate)
+library(patchwork)
+library(stringr)
+```
+
+
+
+
+## Results
+
+
+### Pre Vaccination Data
+
+As the Mexican population is still much smaller than the American population. So, in order to be able to compare them, we are using proportions and report it as per mille ((total number of cases/total population) * 1000), and is represented by ‰. We chose this measure as the numbers are too small for percentages.
+
+We can see that COVID arrived in the US earlier than it did in Mexico. By early April, the US had a peak of covid. However, cases in Mexico started gaining prominence by mid April. Both countries also follow different trends. Mexico had a very small peak in July, but had a constant rate of cases until November. On the other hand, the USA had many peaks. In the US, COVID first peaked in April, then the proportion of new cases declined until mid June. Then there were new peaks in mid July.
+
+
+By the end of 2020, the number of cases of both countries were higher. But they still followed the same pattern, The number of new cases in Mexico were linear, while the US was at a new peak.
+ 
+This might have happened because of different isolation policies. As during 2020, there was no vaccine, so this cannot play a role in the number. It is possible that the quarantine was more strongly enforced in Mexico than in the US.
+
+
+```{r, echo=FALSE}
+#Gets all of the confirmed cases in the US and Mexico in the year of 2020
+covid_cases_2020 <- coronavirus %>% 
+  drop_na(cases) %>% #We are working with cases, so no NAs allowed
+  drop_na(population) %>%  # No NAs allowed as we use this for the proportion
+  filter(country == "US" | country == "Mexico") %>% 
+  mutate(year = year(date))  %>% 
+  filter(year == 2020)
+
+
+#Calculates the proportion of the population infected in the US
+#and Mexico at a given day
+covid_confirmed_cases <- covid_cases_2020  %>% 
+  filter(type == "confirmed") %>%
+  mutate(prop_cases = ((cases/population) * 1000)) #The result is in ‰
+
+#Creates a line plot comparing the proportion of the population
+#infected at a day in the US(red) and Mexico (Green)
+ggplot(covid_confirmed_cases, 
+       aes(x = date, 
+           y = prop_cases, 
+           color = country)) + 
+  geom_line() +
+  scale_color_manual(values = c("US" = "red",
+                                "Mexico" = "green")) +
+  labs(x = "Date",
+       y = "Proportion of the population infected (per mille)", 
+       title = "Proportion of new cases per day US vs. Mexico") +
+  theme_minimal()
+
+```
+
+
+
+However, there is more to this than meets the eye. While Mexico had a consistently smaller rate of new confirmed cases, it had a very high proportion of COVID deaths. From early May up until November, Mexico had a higher death rate than the USA. So, the fatality rate in Mexico at 88.2‰ is higher than the US at 17.3‰. 
+
+
+
+
+
+```{r, echo=FALSE}
+#Calculates the proportion of the population who died because of Covid in
+#the US and Mexico at a given date
+covid_deaths <- covid_cases_2020  %>% 
+  filter(type == "death") %>%
+  mutate(prop_cases = ((cases/population) * 1000)) #The result is in ‰
+  
+
+
+#Creates a line plot comparing the proportion of the population
+#who died because of covid at a day in the US(red) and Mexico (Green)
+ggplot(covid_deaths, 
+       aes(x = date,
+           y = prop_cases,
+           color = country)) + 
+  geom_line() +
+  scale_color_manual(values = c("US" = "red",
+                                "Mexico" = "green")) +
+  labs(x = "Date",
+       y = "Proportion of the population who died of COVID (per mille)", 
+       title = "Proportion of COVID deaths per day US vs. Mexico") +
+  theme_minimal()
+
+```
+
+
+
+```{r, echo = FALSE, include = FALSE}
+#Calculates the fatality rate of both countries.
+fatality_rate_by_country <- covid_confirmed_cases %>%
+  inner_join(covid_deaths,
+             by = c("date", "country")) %>%
+  group_by(country) %>% 
+  summarise(fatality_rate = (sum(cases.y)/sum(cases.x) * 1000)) #The result is in ‰
+fatality_rate_by_country
+```
+
+
+
+Even with the higher fatality rate, by the end of year, a bigger proportion of the American population had died of COVID than the Mexican population, as shown in the world map below. Around 8.3e-06‰ of the american population had died of COVID in 2020 versus 7.8e-04‰ of the Mexican population. This might have happened because the US had a peak in deaths in April, while Mexico still had few cases (and deaths).
+
+
+```{r, echo=FALSE}
+#Gets the mean population of the US and Mexico in 2020
+#This will be used to calculate the proportion of the 
+#Population who died of COVID in 2020
+us_mean_pop <- covid_confirmed_cases %>%
+  filter(country == "US") %>%
+  summarize(mean = mean(population, na.rm = TRUE))
+
+mex_mean_pop <- covid_confirmed_cases %>%
+  filter(country == "Mexico") %>%
+  summarize(mean = mean(population, na.rm = TRUE))
+
+
+
+#Calculates the proportion of the population who died of covid in 2020 in the
+#US and Mexico, converts the result to ‰
+us_mex_combined_deaths <- covid_deaths %>% 
+  group_by(country) %>% 
+  summarise(total_prop = sum(prop_cases, na.rm = TRUE)) %>%
+  mutate(total_prop = if_else(country == "USA", #Ensures the use of the correct population
+                              ((total_prop/us_mean_pop$mean) * 1000),
+                              (total_prop/mex_mean_pop$mean) *1000),
+         country = 
+           if_else(country == "US", #Parses the name of the country
+                   "USA",
+                   country))
+
+#Prepares to use the world map
+world <- map_data("world", region = c("usa", "mexico"))
+
+
+#Joins the map with the dataset we have for both countries
+us_mex_combined_deaths <- world %>%
+  left_join(us_mex_combined_deaths,
+            by = c("region" = "country"))
+
+#Creates a map showing the difference of covid deaths by country, the red indicates
+#a bigger proportion of covid deaths than blue
+ggplot(us_mex_combined_deaths,
+       aes(x = long,
+           y = lat,
+           group=group,
+           fill = total_prop)) + 
+  geom_polygon() +
+  scale_fill_gradient(low = "blue",
+                      high = "red") + 
+  coord_map(xlim = c(-170, -50),
+            ylim = c(14.54541, 69)) +
+  labs(fill = "Proportion of COVID deaths",
+       title = "COVID-19 deaths USA vs. Mexico in 2020",
+       x = "",
+       y = "") +
+  theme_minimal()
+```
+
+Therefore, even though the virus spread more around the US population, it was way more lethal in Mexico. There are many factors that might have caused it. For example, the US is a more developed country with more infrastructure. Even though the healthcare system in the US is expensive, the country has world class doctors and facilities, that might have influenced in the lower numbers. On the other hand, Mexico is still a developing country.  However, these factors are beyond the scope of this project. 
+
+
+## During vaccination
+
+Now, we will evaluate the impact of vaccination in the number of cases in both of these countries. We are still measuring the proportion of cases per mille ((total_cases/population) * 1000). However, we will evaluate the the proportion of people who got at least one dose of the vaccine through percentage. We decided to do that, as the proportion of people who got vaccines is much higher than the proportion of people who were diagnosed with COVID. If we kept both with the same units, it would be hard to put them in the same plot.
+
+The plot below shows the amount of people who took at least one dose of the vaccine (in blue), and the number of new confirmed cases per thousand of inhabitants. Based on the vaccination data shown below, we can see that as the year went by, a significant percentage of the US population took at least one dose of the covid vaccine. For example, around June, the percentage of the population who took at least one dose of the vaccine was around 50%. At the same time, we can see that there was the lowest number of cases per 1000 inhabitants of the year. After that period, there was an increased in the number of confirmed cases, but other factors are at play, such as reduced isolation policies. 
+
+In an analogous map for Mexico, we see that the vaccination rates are much lower. They only managed to get 25% of the population vaccinated by the end of 2021. However, the number of cases per one thousand inhabitants was also significantly lower than the US. Unlike the US, they only saw a small peak by August. 
+
+
+Even thought the rate of vaccinated people increased linearly in both countries, the number of new cases did not go down linearly. Again, there are multiple factors in play. In great part of 2020 people were quarantining, working and studying remotely. However, people were no long doing their activities remotely in 2021. As for Mexico, the increase in the proportion of people with COVID coincides with the summer break of some schools, which might have player a factor into it.
+
+```{r, echo=FALSE}
+bar_and_line_graph <- function(region){
+       #Gets the proportion of the population of "region" who are vaccinated
+       vaccines_data <- covid19_vaccine %>% 
+       drop_na(people_at_least_one_dose) %>% #As we are working with number of people vaccinated, no NAs are allowed
+       filter(country_region == region) %>% 
+       mutate(year = year(date),
+              month = month(date))  %>% 
+       filter(year == 2021) %>% 
+       group_by(month) %>% 
+       summarize(people_at_least_one_dose = max(people_at_least_one_dose)) %>% #This is a cumulative variable
+       mutate(vax_prop = ((people_at_least_one_dose/us_mean_pop$mean) * 100))
+
+       #Here we will get the total number of COVID cases in region in 2021, and join it
+       #With the percentage of the population who is vaccinated. The total number of cases
+       #Will be displayed as a proportion in ‰
+       covid_data_2021 <- coronavirus %>% 
+       drop_na(cases) %>% #We are working with cases, so no NAs allowed
+       filter(country == region, 
+              (type == "confirmed")) %>% #We are only interested in the number of cases
+       mutate(year = year(date),
+              month = month(date))  %>% 
+       filter(year == 2021) %>%  #We should get a new dataset, as the previous one only had 2020 data
+       group_by(month) %>% 
+       summarize(monthly_cases = sum(cases)) %>% 
+       mutate(cases_prop = ((monthly_cases/us_mean_pop$mean) * 1000))
+
+
+       #Here we plot the percentage of people who are vaccinated in bars,
+       #And compare it to the amount of new cases in ‰. The new cases are in the line
+       #The different units are explained in text and in the plot
+       ggplot() + 
+       geom_col(data = vaccines_data, #Sets up the column plot
+                aes(x = month,
+                    y = vax_prop,
+                    color = "Proportion Vaccinated"), #We set up our legend here
+                fill = "cornflowerblue") + 
+       geom_line(aes(x = month, #Setting up second plot
+                     y = cases_prop,
+                     color = "Confirmed Cases"),
+                 data = covid_data_2021) +
+       labs(x = "Month", y = "Vaccination (%)/Confirmed cases(per mille)") + 
+       scale_color_manual(values = c("Confirmed Cases" = "red",
+                                     "Proportion Vaccinated" = "cornflowerblue")) +
+       scale_x_continuous(breaks = seq_along(month.name), 
+       labels = month.name) + #Correcting the labels
+       theme_minimal() + 
+       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) #Changes the angle of the axis text
+}
+
+bar_and_line_graph("US") 
+  
+bar_and_line_graph("Mexico")
+```
+
+Overall, Mexico did a good job containing the spread of the virus. However, once one contracted the virus, the lethality rate in the US was significantly lower. Even though the proportion of new cases was still higher, by 2021, the US did a better job in vaccination than Mexico.
+
+
+
+
+
+**Sources:**
+
+https://www.geeksforgeeks.org/remove-axis-labels-and-ticks-in-ggplot2-plot-in-r/#
+https://stackoverflow.com/questions/69411847/changing-month-from-number-to-full-month-name-in-r
+https://lubridate.tidyverse.org/reference/make_datetime.html
+
+

@@ -1,0 +1,148 @@
+---
+title: "Class Activity 15"
+author: "Arthur Viegas Eguia"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      size = "small", 
+                      collapse = TRUE, 
+                      comment = NA, 
+                      warning = FALSE, 
+                      message = FALSE,
+                      error = TRUE)
+
+# load the necessary libraries
+library(tidyverse)
+library(stringr)
+library(purrr)
+
+
+energy <- read_csv("https://raw.githubusercontent.com/deepbas/statdatasets/main/energy.csv",
+                    col_type = cols(
+                     .default = col_double(), 
+                      Timestamp = col_datetime(format = ""),
+                      dayWeek = col_factor(levels=c("Mon","Tues","Wed","Thurs","Fri","Sat","Sun"))
+                     ))
+```
+
+
+\vspace*{1in}
+
+
+## Group Activity 1
+
+### a. Write a for loop to iterate over the columns of the 'energy' dataset and print the names of all columns containing the string "House". Please use the function `colnames()` to extract the column names and store the results in a list.
+
+*Answer:*
+
+```{r}
+results <- list()
+for(i in colnames(energy)){
+  if(str_detect(i, "House")){
+    results[[length(results) + 1]] <- i 
+  }  
+}
+
+results %>% unlist() -> houses
+```
+
+
+
+
+
+### b. Using a for loop, calculate and print the mean energy consumption of houses you identified in part a.
+
+```{r}
+mean_energy <- c()
+for(i in houses){
+  mean_val <- mean(energy[[i]], na.rm = TRUE)
+  mean_energy <- c(mean_energy, mean_val)
+}
+mean_energy
+```
+
+
+-------------------------------------------------------------------------------------
+
+## Group Activity 2
+
+
+**1.** Make a data frame of quantiles for `energy` buildings in columns 9-90 (you will need `na.rm = TRUE`)
+
+```{r}
+qdf1 <- energy %>%
+  select(9:90) %>% 
+  map_dfc(quantile,
+          probs = seq(0.1, 0.9, 0.1),
+          na.rm =TRUE) 
+qdf1
+```
+
+
+
+
+**2.**  Add a variable to identify the quantile
+
+
+```{r}
+qdf1 %>%
+  mutate(stat = str_c("quantile_",
+                      seq(10, 90, 10)),
+         .before=1) ->qdf2
+qdf2
+```
+
+
+
+
+
+
+
+**3.**  Reshape the data frame to make variables `stat` (describing the quantile), `building` and `quant` (quantile value)
+
+
+
+
+```{r}
+qdf2 %>%
+  qdf3 <- pivot_longer(names_to = "Building",
+                      values_to="Quantiles",
+                      cols = -1)
+qdf3
+```
+
+
+
+
+
+**4.**  Plot the KWH value for each quantile on the x-axis for the buildings `Sayles-Hill`, `Center_for_Mathematics_&_Computing`, `Olin_Hall_of_Science`
+
+
+
+```{r}
+qdf3 %>% 
+  filter(Building %in% c("Sayles-Hill",
+                         "Center_for_Mathematics_&_Computing",
+                         "Olin_Hall_of_Science")) %>% 
+  ggplot(aes(x = Quantiles, y = readr::parse_number(stat), color = Building)) + 
+  geom_point() +
+  geom_line(aes(color=Building)) +
+  scale_y_continuous(breaks = seq(10, 90, 10)) +
+  labs(y = "Percentiles (%)",
+       x = "Energy KWH")
+
+```
+
+
+
+
+
+
+
+

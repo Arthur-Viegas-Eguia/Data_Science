@@ -1,0 +1,151 @@
+---
+title: "Class Activity 10"
+author: "Arthur Viegas Eguia"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      size = "small", 
+                      collapse = TRUE, 
+                      comment = NA, 
+                      warning = FALSE, 
+                      message = FALSE,
+                      error = TRUE)
+
+# load the necessary libraries
+library(tidyverse)
+library(tidyr)
+library(forcats)
+```
+
+
+\vspace*{1in}
+
+## Your Turn 1
+
+
+```{r}
+set.seed(123)
+students <- tibble(
+  id = 1:24,
+  grade = sample(c("9th", "10th", "11th"), 24, replace = TRUE),
+  region = sample(c("North America", "Europe", "Asia", "South America", "Middle East", "Africa"), 24, replace = TRUE),
+  score = round(runif(24,50, 100))
+)
+```
+
+
+### a. Create a new column `grade_fac` by converting the grade column into a factor. Reorder the levels of `grade_fac` to be "9th", "10th", and "11th". Sort the dataset based on the `grade_fac` column.
+
+*Answer:* 
+
+```{r}
+students_a <- students %>%
+  mutate(grade_factor = factor(grade)) %>%
+  mutate(grade_factor = 
+           fct_relevel(grade_factor, 
+                       c("9th", "10th", "11th")))
+levels(students_a$grade_factor)
+```
+
+
+### b. Create a new column `region_fac` by converting the `region` column into a factor. Collapse the `region_fac` levels into three categories: “Americas”, “EMEA” and “Asia”. Count the number of students in each collapsed region category.
+
+```{r}
+students_b <- students_a %>% mutate(region_factor = factor(region)) %>%
+  mutate(region_collapsed =
+           fct_collapse(region_factor, Americas = c("North America", "South America"),
+                        EMEA = c("Europe", "Middle East", "Africa"),
+                        Asia = c("Asia"))) %>% 
+count(region_collapsed) #alternate for group by and summarize
+students_b
+```
+
+
+### c. Create a new column `grade_infreq` that is a copy of the `grade_fac` column. Reorder the levels of `grade_infreq` based on their frequency in the dataset. Print the levels of `grade_infreq` to check the ordering.
+
+```{r}
+students_c <- students_a %>%
+  mutate(grade_infrequent = grade_factor) %>% 
+  mutate(grade_infrequent = fct_infreq(grade_infrequent))
+
+students_c
+students_a %>%  mutate(grade_infreq = grade_factor) %>%  count(grade_infreq)
+```
+
+
+### d. Create a new column `grade_lumped` by lumping the least frequent level of the `grade_fac` column into an 'Others' category.
+Count the number of students in each of the categories of the `grade_lumped` column.
+
+
+
+```{r}
+students_d <- students_a %>% 
+  mutate(grade_lumped = fct_lump(grade_factor, n = 1, other_level = "others")) %>%  count(grade_lumped)
+
+students_d
+```
+
+
+
+## Your Turn 2
+
+Lets import the `gss_cat` dataset from the `forcats` library. This dataset contains a sample of categorical variables from the General Social survey.
+
+```{r}
+# import gss_cat dataset from forcats library
+forcats::gss_cat
+```
+
+Use `gss_cat` to answer the following questions.
+
+### a. Which religions watch the least TV?
+
+```{r}
+# your r-code
+
+gss_cat %>% drop_na(tvhours) %>% 
+  group_by(relig) %>% 
+  summarise(tvhours = mean(tvhours, na.rm = TRUE)) %>% 
+  ggplot(aes(x = tvhours, y = fct_reorder(relig, tvhours))) + geom_point()
+ 
+```
+
+
+
+### b. Do married people watch more or less TV than single people?
+
+```{r}
+# your r-code
+
+gss_cat %>% drop_na(tvhours) %>% 
+  group_by(marital) %>% 
+  summarise(tvhours = mean(tvhours, na.rm = TRUE)) %>% 
+  ggplot(aes(x = tvhours, y = fct_reorder(marital, tvhours))) + geom_point()
+ 
+
+```
+
+
+c. Collapse the `marital` variable to have levels `Married`, `Not_married`, and `No_answer` . Include `"Never married"`, `"Divorced"`, and "`Widowed"` in `Not_married`
+
+
+```{r}
+# your r-code
+
+gss_cat %>% mutate(marital_collapsed = 
+                     fct_collapse(marital,
+                                  Married = c("Married", "Separated"),
+                                  Not_married = c("Never Married", "Divorced", "Widowed"),
+                                  No_answer = c("No answer")))
+ 
+  
+
+```
+
+

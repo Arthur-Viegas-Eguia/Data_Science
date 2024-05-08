@@ -1,0 +1,311 @@
+---
+title: "Homework 4"
+output: pdf_document
+---
+
+## Name: Arthur Viegas Eguia
+
+## I worked with: Deepak Bastola, Piper Dean (Stats Lab), Natalie Bax (Stats Lab)
+
+**Click the "Knit" button in RStudio to knit this file to a pdf.**
+
+--------------------------------------------
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, collapse = TRUE, 
+                      warning = FALSE, message = FALSE)
+# add packages here 
+library(dplyr)
+library(tidyr)
+library(readr)
+library(forcats)
+library(lubridate)
+library(nycflights13)
+library(ggplot2)
+```
+
+## Problem 1: flights
+
+
+
+### a. 
+
+*answer:* The plane with tailnum N725MQ flew 575 times from New York
+
+```{r}
+flight <- flights
+mostTimesTailnum <- flights %>%
+  group_by(tailnum) %>%
+  summarise(totalCount = n()) %>%
+  tidyr::drop_na() %>%
+  arrange(desc(totalCount)) %>%
+  slice(1)
+mostTimesTailnum
+```
+
+### b. 
+
+*answer:* In the summer, the months of July and August
+
+```{r}
+flightsMonth <- flights %>%
+  mutate(mth = month(time_hour, label = TRUE)) %>%
+  group_by(day, mth) %>%
+  summarise(num_flights = n())
+ggplot(flightsMonth, aes(y = num_flights, x = mth)) + geom_boxplot()
+```
+
+### c. 
+
+*answer:* Saturday sees by far the fewest flights
+
+```{r}
+flightsMonth <- flights %>%
+  mutate(dow = wday(time_hour, label = TRUE)) %>%
+  group_by(month, dow) %>%
+  summarise(num_flights = n())
+
+ggplot(flightsMonth, aes(y = num_flights, x = dow)) + geom_boxplot()
+```
+
+
+
+------------------------------------------------
+
+
+## Problem 2: top destinations
+```{r}
+top_dest <- flights %>% 
+  count(dest) %>% 
+  slice_max(n, n = 10)
+```
+
+
+### a. 
+
+*answer:*  The dimensions of this dataset are 141,145 × 20
+
+```{r}
+top_dests_info <- top_dest %>%
+  left_join(flight, by=c("dest"))
+top_dests_info
+```
+
+### b. 
+
+*answer:* Median in code below
+
+
+
+```{r}
+top_dests_info %>%
+  group_by(dest) %>%
+  mutate(dep_date = make_datetime(year = year,
+                                  month = month,
+                                  day = day,
+                                  hour=hour,
+                                  min = minute)) %>%
+  arrange(dep_date) %>% 
+  mutate(dif_time = interval(lag(dep_date), dep_date) / dminutes(1)) %>%
+  summarize(median_time=median(dif_time, na.rm = TRUE))
+```
+
+
+------------------------------------------------
+
+
+
+
+## Problem 3: Energy
+
+```{r}
+energy <- readr::read_csv("https://raw.githubusercontent.com/deepbas/statdatasets/main/energy.csv",
+                    col_type = cols(
+                     .default = col_double(), 
+                      Timestamp = col_datetime(format = ""),
+                      dayWeek = col_factor(levels=c("Mon","Tues","Wed","Thurs","Fri","Sat","Sun"))
+                     ))
+dim(energy)
+```
+
+
+### a. 
+
+*answer:* It contains 2880578 rows and 10 columns
+
+```{r}
+names(energy)  # check variable names for use in pivot
+energy_narrow <- energy %>% 
+  pivot_longer(
+    names_to = "building",
+    values_to = "energyKWH",
+    cols = 9:90
+  )
+energy_narrow
+```
+
+### b. 
+
+
+```{r}
+lair_hall_data <- energy_narrow %>%
+  mutate(Timestamp = date(Timestamp)) %>%
+  group_by(Timestamp) %>%
+  filter(building == "Laird_Hall") %>%
+  summarise(daily_mean = mean(energyKWH),
+            daily_standard_deviation = sd(energyKWH)) %>%
+  mutate(month = month(Timestamp, label = TRUE))
+lair_hall_data
+```
+
+### c. 
+
+*answer:* The consumption,both in daily mean and standard deviation seem to be very high until sometime in April. Then, by mid april both the mean and the standard deviation got much smaller.The mean went from values around 25 to 5, in mid April. Our interval (mean + and - the standard deviation) went from values in the 20s and 40s (before April), to values from around 3 to values around 8 after April.
+
+```{r}
+ggplot(lair_hall_data, aes(x = Timestamp)) +
+  geom_ribbon(aes(ymin = daily_mean - daily_standard_deviation,
+                  ymax = daily_mean + daily_standard_deviation, fill = month),
+              alpha = 0.5) + geom_line(aes(y = daily_mean)) 
+```
+
+
+### d. 
+
+*answer:* It was April 12th.
+
+```{r}
+day_adjusted <- lair_hall_data %>%
+  drop_na()  %>%
+  arrange(Timestamp) %>%
+  filter(month == "Apr") %>%
+  mutate(energy_diff = daily_mean - lag(daily_mean)) %>%
+  arrange(energy_diff) %>%
+  slice(1)
+day_adjusted 
+```
+
+### e. 
+
+*answer:* The data now follows a consistent pattern, considering a drop for Winter Break. Now, it seems that the pre-April readings are close to the post April readings.
+
+```{r}
+laird_hall_data_adjusted <- lair_hall_data %>%
+  drop_na() %>%
+  arrange(Timestamp) %>%
+  mutate(daily_mean = ifelse(Timestamp <= "2016-04-12", daily_mean * 0.16, daily_mean),
+         daily_standard_deviation = ifelse(Timestamp <= "2016-04-12", daily_standard_deviation * 0.16, daily_standard_deviation))
+ggplot(laird_hall_data_adjusted, aes(x = Timestamp)) +
+  geom_ribbon(aes(ymin = daily_mean + daily_standard_deviation,
+                  ymax = daily_mean - daily_standard_deviation,
+                  fill = month), alpha = 0.5) +
+  geom_line(aes(y = daily_mean)) 
+```
+
+
+
+------------------------------------------------
+
+
+
+## Problem 4: UN votes
+
+
+
+```{r}
+unvotes <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-03-23/unvotes.csv')
+roll_calls <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-03-23/roll_calls.csv')
+issues <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-03-23/issues.csv')
+```
+
+```{r}
+# Merge data frames
+merged_data <- unvotes %>%
+  left_join(roll_calls, by = "rcid", multiple = "all") %>%
+  left_join(issues, by = "rcid", multiple = "all") %>% 
+  tidyr::drop_na(country, country_code, vote, issue, date) %>% 
+  mutate(vote = factor(vote))
+```
+
+
+
+### a. 
+
+
+```{r}
+unvotes_refactored <- merged_data %>%
+  mutate(vote = fct_relevel(vote, c("yes", "no", "abstain"))) %>%
+  arrange(vote)
+unvotes_refactored
+```
+
+### b. 
+
+
+```{r}
+merged_data %>% distinct(issue)
+unvotes_refactored <- unvotes_refactored  %>% 
+  mutate(issue_factor = factor(issue),
+         issue_category = fct_recode(issue_factor,
+    "Territorial Issues" = 'Palestinian conflict',
+    "Weapons and Disarmament" = 'Nuclear weapons and nuclear material',
+    "Weapons and Disarmament"= 'Arms control and disarmament',
+   "Territorial Issues"= 'Colonialism',
+   "Economic Development" = 'Economic development', #This capitalizes Development
+   "Human Rights" = 'Human rights'
+      ))
+ggplot(unvotes_refactored, aes(x = issue_category)) +
+  geom_bar(aes(fill=vote)) +
+  labs(y = "Share of votes", x="issues") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5))
+```
+
+### c. 
+
+
+```{r}
+unvotes_refactored <- unvotes_refactored %>%
+  mutate(issue_category = fct_relevel(issue_category,
+                                      c("Territorial Issues",
+                                        "Weapons and Disarmament",
+                                        "Human Rights",
+                                        "Economic Development"))) %>%
+  arrange(issue_category)
+ggplot(unvotes_refactored, aes(x = issue_category)) +
+  geom_bar(aes(fill=vote)) +
+  labs(y = "Share of votes", x="issues") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5))
+```
+
+
+### d. 
+
+
+```{r}
+countries_no <- unvotes_refactored %>%
+  group_by(country) %>% filter(vote == "no") %>%
+  summarise(no_votes = n()) %>%
+  arrange(desc(no_votes)) %>%
+  slice(1:10)
+countries_no
+ggplot(countries_no,
+       aes(x = country, y=no_votes)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5))
+```
+
+### e. 
+
+
+```{r}
+unvotes_refactored <- unvotes_refactored %>%
+  mutate(country_fact = factor(country),
+         region = fct_collapse(country_fact,
+           Americas = c("United States", "Canada", "Brazil", "Argentina", "Mexico"),
+           Europe = c("United Kingdom", "France", "Germany", "Italy", "Spain"),
+           Asia = c("China", "Japan", "India", "South Korea", "Russia"),
+           'Middle East' = c("Iran", "Israel", "Saudi Arabia", "Turkey", "United Arab Emirates")
+           ))
+unvotes_refactored
+```
+
