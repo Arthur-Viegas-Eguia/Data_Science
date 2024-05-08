@@ -1,0 +1,155 @@
+---
+title: "Class Activity 6"
+author: "Your name here"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+format:
+  pdf: default
+  html:
+    df_print: paged
+editor: visual
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  error: true
+---
+
+```{r setup, include=FALSE}
+# load the necessary libraries
+library(dplyr)
+library(ggplot2)
+library(babynames)
+```
+
+
+We will work with the `babynames` dataset again in this class activity. The header of the dataset looks like this:
+
+```{r}
+knitr::kable(head(babynames))
+```
+
+In this tutorial, we will learn about the five main verbs of dplyr and how to use them to manipulate data:
+
+- `select()`: Choose columns from a data frame
+- `filter()`: Choose rows based on a condition
+- `arrange()`: Sort the rows of a data frame
+- `mutate()`: Add new columns based on existing columns
+- `summarise()`: Aggregate data and compute summary statistics
+
+## Problem 1: `select()`
+
+Which of these is NOT a way to select the `name` and `n` columns together?
+
+```{r, results='hide'}
+select(babynames, -c(year, sex, prop))  #1
+select(babynames, name:n)   #2
+select(babynames, starts_with("n")) #3
+select(babynames, ends_with("n"))  #4
+```
+
+*Answer:* 
+
+\vspace*{1in}
+
+
+## Problem 2: `filter()`
+
+Use `filter()` with the logical operators to extract:
+
+### a. All of the names where prop is greater than or equal to 0.08
+
+```{r}
+
+```
+
+### b. All of the babies named "Margaret"
+
+```{r}
+
+```
+
+
+### c. Use `filter()` to choose all rows where name is "John" and sex is "M".
+
+
+```{r}
+
+```
+
+
+\vspace*{1in}
+
+## Problem 3: `arrange()`
+
+### a. Use `arrange()` to sort the babynames dataset by the prop column in descending order.
+
+```{r}
+
+```
+
+
+### b. Use `arrange()` to sort the babynames dataset by year (ascending) and then by prop (descending).
+
+```{r}
+
+```
+
+
+\vspace*{1in}
+
+
+## Problem 4: `mutate()`
+
+### a. Use `mutate()` to create a new column called decade which contains the decade the record is in (e.g., 1990 for the years 1990-1999).
+
+```{r}
+
+```
+
+
+\vspace*{1in}
+
+
+## Problem 5: `summarize()` or `summarise()`
+
+Use the codes mentioned so far to compute three statistics:
+
+- the total number of children who ever had your name
+- the maximum number of children given your name in a single year
+- the mean number of children given your name per year
+
+
+```{r}
+
+
+
+```
+
+
+\vspace*{1in}
+
+
+## Problem 6
+
+### a. Use `min_rank()` and `mutate()` to rank each row in babynames from largest prop to smallest prop.
+
+```{r}
+
+```
+
+
+### b. Compute each name's rank within its year and sex.
+
+```{r}
+
+```
+
+
+### c. *(Optional)* Then compute the median rank for each combination of name and sex, and arrange the results from highest median rank to lowest.
+
+
+```{r}
+
+```
+
+

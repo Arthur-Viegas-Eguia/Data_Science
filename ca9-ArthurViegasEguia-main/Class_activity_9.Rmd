@@ -1,0 +1,144 @@
+---
+title: "Class Activity 9"
+author: "Arthur Viegas Eguia"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      size = "small", 
+                      collapse = TRUE, 
+                      comment = NA, 
+                      warning = FALSE, 
+                      message = FALSE,
+                      error = TRUE)
+
+# load the necessary libraries
+library(tidyverse)
+library(janitor)
+library(stringr)
+library(tidyr)
+library(readr)
+```
+
+
+\vspace*{1in}
+
+## Problem 1
+
+a) Use `read_csv()` to import the `desserts` data set from [GitHub url](https://raw.githubusercontent.com/deepbas/statdatasets/main/desserts.csv). Use `glimpse` to see if the data import is alright.
+
+```{r}
+url <- "https://raw.githubusercontent.com/deepbas/statdatasets/main/desserts.csv"
+desserts <- readr::read_csv(url)
+glimpse(desserts)
+```
+
+Does everything look good? Import the dataset with correct data types, if needed. Fix the problems, if any.
+
+```{r}
+# your r-code
+desserts1 <- read_csv(url, col_types = list(
+    technical=col_number(),
+    uk_airdate = col_date()
+  ))
+glimpse(desserts1)
+problems(desserts1)
+```
+```{r}
+desserts2 <- read_csv(url, col_types = list(
+  technical = col_number(),
+  uk_airdate = col_date(format = "%d %B %Y")
+))
+problems(desserts2)
+```
+
+```{r}
+desserts3 <- read_csv(url, col_types = list(
+  technical = col_number(),
+  uk_airdate = col_date(format = "%d %B %Y")
+),
+na = c("N/A", "", "unknown", "NA")
+)
+problems(desserts3)
+```
+
+
+
+## Problem 2
+
+a) Use the appropriate `read_<type>()` function to import the datasets provided in the [course webpage](https://stat220-spring24.netlify.app/datasets). Identify and fix any issues you encounter.
+
+
+If you hit any errors/problems, be sure to explore them and identify the issue, even if you can't "fix" it.
+
+
+```{r}
+# your code for simple 1
+simple <- readr::read_csv("data/simple-1.dat")
+#write_csv(simple, "data/simple_copy.csv")
+```
+
+
+```{r}
+# your code for mild 1
+read_csv("data/mild-1.csv")
+mild1 <- read_delim("data/mild-1.csv")
+```
+
+
+```{r}
+# your code for tricky 1
+tricky1 <- read_csv("data/tricky-1.csv")
+problems(tricky1)
+
+```
+
+
+The issue is that we have missing values that aren't specifically included in the rows 4 and 7 of the **original** file (so rows 3 and 6 once we load the data). We can fix this with post processing
+
+```{r}
+# your post-processing code
+tricky1[3, ] <- c(tricky1[3, 1:2], NA, tricky1[3, 3:4])
+tricky1[6, ] <- c(tricky1[6, 1], NA, tricky1[6, 2:4])
+
+tricky1
+```
+
+
+```{r}
+# your code for tricky 2
+tricky2 <- read_csv("data/tricky-2.csv")
+problems(tricky2)
+tricky2
+```
+
+Why are there state abbreviations in the latitude column?
+
+```{r, eval=FALSE}
+# your post-processing code
+tricky2_part1 <- read_csv("data/tricky-2.csv", n_max = 7)
+
+
+
+tricky2_part1 <- tricky2_part1 %>% separate(city, c("city, state"), sep=", ") 
+names <- colnames(tricky2_part1)
+tricky2_part1
+
+tricky2_part2 <- read_csv("data/tricky-2.csv", skip = 8, col_names = names)
+full_join(tricky2_part1, tricky2_part2) -> fullCleanData
+
+```
+
+
+
+## Acknowledgemant
+
+Parts of the activities are adapted from similar activity written by Adam Loy.
+
+
+

@@ -1,0 +1,176 @@
+---
+title: "Class Activity 8"
+author: "Your name here"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+format:
+  pdf: default
+  html:
+    df_print: paged
+editor: visual
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  error: true
+---
+
+```{r setup, include=FALSE}
+# load the necessary libraries
+library(tidyverse)
+library(lubridate)
+```
+
+
+## Your turn 1
+
+In the provided R code, we start with two datasets, `DBP_wide` and `BP_wide`, representing blood pressure measurements in a wide format. We then demonstrate how to transform `BP_wide` into a long format using `pivot_longer()`.
+
+```{r}
+DBP_wide <- tibble(id = letters[1:4],
+ sex = c("F", "M", "M", "F"),
+ v1.DBP = c(88, 84, 102, 70),
+ v2.DBP = c(78, 78, 96, 76),
+ v3.DBP = c(94, 82, 94, 74),
+ age=c(23, 56, 41, 38)
+ )
+DBP_wide
+```
+
+
+```{r}
+BP_wide <- tibble(id = letters[1:4],
+                     sex = c("F", "M", "M", "F"),
+                     SBP_v1 = c(130, 120, 130, 119),
+                     SBP_v2 = c(110, 116, 136, 106),
+                     SBP_v3 = c(112, 122, 138, 118))
+BP_wide
+```
+
+
+```{r}
+BP_long <- BP_wide %>% 
+  pivot_longer(names_to = "visit", values_to = "SBP", SBP_v1:SBP_v3) %>% 
+  mutate(visit = parse_number(visit))
+BP_long
+```
+
+
+### a. Create a long dataframe from `DBP_wide` based on the repeated DBP columns and save it as `DBP_long`.
+
+```{r}
+DBP_long <- 
+  
+  
+```
+
+### b. Clean up the visit column of `DBP_long` so that the values are 1, 2, 3, and save it as `DBP_long`.
+
+
+```{r}
+DBP_long <- 
+  
+  
+```
+
+
+### c. Make `DBP_long` wide with column names visit.1, visit.2, visit.3 for the DBP values, and save it as `DBP_wide2`
+
+```{r}
+DBP_wide2 <- 
+  
+  
+```
+
+
+### d. Join `DBP_long` with `BP_long2` to create a single data frame with columns id, sex, visit, SBP, DBP, and age. Save this as `BP_both_long.`
+
+
+```{r}
+BP_both_long <-
+  
+  
+```
+
+
+### e. Calculate the mean SBP and DBP for each visit and save the result as `mean_BP_by_visit.`
+
+```{r}
+mean_BP_by_visit <-
+  
+```
+
+
+## Your turn 2
+
+
+### a. Parsing Complex Dates: Use `dmy_hms()` to parse the following date-time string: "25-Dec-2020 17:30:00"
+
+
+```{r}
+parsed_date <- 
+  
+```
+
+
+### b. Advanced Date Arithmetic: Calculate the exact age in years for someone born on "1995-05-15 09:30:00".
+
+
+```{r}
+dob <- 
+  
+  
+```
+
+
+### c. Creating Date-Time Objects: Create a date-time object for March 15, 2020, 13:30:00 using `make_datetime()`.
+
+```{r}
+new_date_time <- 
+  
+```
+
+### d. Extracting Components from Date-Time Objects: Extract the year, month (as a number), day, hour, and minute from "2022-07-01 14:45:00".
+
+```{r}
+example_date_time <- ymd_hms("2022-07-01 14:45:00")
+extracted_components <- tibble(
+  year = ,
+  month =  ,
+  day =  ,
+  hour = ,
+  minute = 
+)
+extracted_components
+```
+
+
+### e. Advanced Date-Time Arithmetic with Periods: Add 2 months and 15 days to "2021-08-01".
+
+```{r}
+initial_date <- ymd("2021-08-01")
+new_date <- 
+  
+```
+
+
+### f. Duration and Time Differences: Calculate the duration in days, weeks, months, and years between "2019-04-01" and "2022-04-01".
+
+```{r}
+start_date <- ymd("2019-04-01")
+end_date <- ymd("2022-04-01")
+time_diff <- end_date - start_date
+duration_days <- 
+duration_weeks <- 
+duration_months <- 
+duration_years <- 
+
+duration_results <- tibble(
+  days = duration_days,
+  weeks = duration_weeks,
+  months = duration_months,
+  years = duration_years
+)
+duration_results
+```
+
+
