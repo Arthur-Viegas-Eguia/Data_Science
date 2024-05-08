@@ -1,0 +1,272 @@
+Individual homework 5
+================
+
+## Please push your assignment to GitHub by 10:00 pm (Central) Tuesday, May 7.
+
+You are currently in the GitHub repository (repo) for `hw5-username`.
+The assignment prompt is shown below (i.e. in `README.Rmd`). You can
+view this online in your homework 5 GitHub repository as a Markdown
+file(`README.md`) or a pdf.
+
+Please **use `hw5.Rmd` to complete this assignment**. Be sure to **knit
+your file to PDF before your final push to GitHub**.
+
+## Homework process
+
+For help on the homework process, review
+
+- [Assignments in Stat
+  220](https://stat220-spring24.netlify.app/assignments) for
+  content/formatting questions.
+
+- [GitHub Guide for Students in Stat
+  220](https://stat220-spring24.netlify.app/github_tutorial) for Git and
+  Github instructions.
+
+When you are done with your homework, **don’t forget to push your
+changes to ALL files back to GitHub!** This means you should commit and
+push all related files, not just your final PDF. Additionally, ensure
+you post the link to your **GitHub repository to Gradescope for the
+final submission and grading**. This step is crucial as it allows for a
+comprehensive review of both your code and the rendered output.
+
+------------------------------------------------------------------------
+
+## Problem 1: regular expression using `babynames`
+
+### a.
+
+Construct a regular expression (regex) to find all names that end in a
+vowel (here, you can consider “y” to be a vowel). Store this regex in
+`pattern` and run the code to determine how many baby names in 2017
+ended with a vowel. Use babynames dataset from the `babynames` package.
+
+### b.
+
+Write a regex that finds names that start in “Ed” and ends with “rd” so
+that it matches names like `"Edward"` and `"Eddard"`. Any number of
+characters can be in between. Check your regex using the small vector
+given below then determine how many babynames in 2017 match this
+pattern.
+
+``` r
+x <- c("Edward", "Eddard", "Ned")
+```
+
+### c.
+
+Construct a regex to find all names that only contain vowels in 2017.
+(In this problem, consider vowels to be aeiouy.) Are there any such
+names? If so, what are they?
+
+### d.
+
+Construct a regex to find all four-letter names in 2017 and store these
+names in a vector. (Hint: try using `dplyr::pull`) Print the length of
+this vector. (Please don’t print the entire vector.)
+
+### e.
+
+Write a regex to find all of the four letter names that are palindromes
+in your names from part (d). (“Anna” is one such example.) Check this on
+the baby names from 2017. (Hint: You will need to capture the first two
+letters individually and then use back references. Also, it’s easier to
+operate on all lowercase letters.)
+
+------------------------------------------------------------------------
+
+## Problem 2: Energy autocorrelation
+
+Auto correlation measures the correlation between measurements that
+differ by a fixed amount of time. For example, “lag 1” autocorrelation
+measures the correlation between measurements that are 1 time unit
+apart, lag 2 measures the correlation between measurements 2 time units
+apart, etc.
+
+``` r
+energy <- readr::read_csv("https://raw.githubusercontent.com/deepbas/statdatasets/main/energy.csv",
+                    col_type = cols(
+                     .default = col_double(), 
+                      Timestamp = col_datetime(format = ""),
+                      dayWeek = col_factor(levels=c("Mon","Tues","Wed","Thurs","Fri","Sat","Sun"))
+                     ))
+```
+
+The `acf` function computes autocorrelation in R. Here we get
+autocorrelation for Olin energy readings. The correlation between units
+0 minutes apart is 1 (they are the same measurements!), the correlation
+between readings 15 minutes apart is 0.956, between 30 minutes apart is
+0.95, between 45 minutes apart is 0.934 and between 60 minutes apart is
+0.917. It makes sense that a correlation exists between energy use at
+points close in time.
+
+``` r
+x <- energy %>% 
+  arrange(Timestamp) %>%    # making sure sorted by time
+  pull("Olin_Hall_of_Science")
+acf_out <- acf(
+  x,   # time series
+  na.action = na.pass,    # skips over NAs
+  lag.max = 4,   # max lag
+  plot = FALSE)   # don't plot
+acf_out
+acf_out$acf   # autocorr values
+acf_out$lag   # lag values
+```
+
+### a.
+
+Write a function called `autocor_fun` that will take in:
+
+- the vector of KWH values from one building
+- a max lag value
+
+and return a *data frame* with variables
+
+- `autocor` which measures autocorrelation between `energyKWH` values.
+  Note that you will need to extract the `acf` values from the `acf`
+  function and coerce these into a vector with `as.vector`.
+- `lag` which tells what lag the `autocor` was computed at
+
+Use the `na.action` and `plot` arguments in `acf` that are shown above
+when writing your function.
+
+Check your `autocor_fun` on the Olin KWH data that was used above with a
+max lag of 4.
+
+### b.
+
+Use the `purrr` package to apply `autocor_fun` to the buildings
+`"Sayles-Hill" ,"Language_&_Dining_Center", "Olin_Hall_of_Science"` with
+a max lag of 4. Use the wide data frame `energy` and your result should
+be a data frame that also identifies buildings.
+
+### c. 
+
+Repeat (b) but this time use the narrow version of the data
+`energy_narrow`. This time you will use `dplyr` groupings and summarize
+to apply the `autocor_fun` to each building’s KWH. (Don’t forget to
+filter to the three buildings). Your data frame results for (b) and (c)
+should be identical.
+
+``` r
+energy_narrow <- energy %>% 
+  mutate(month = month(month, label=TRUE)) %>%
+  pivot_longer(
+    cols = 9:90,
+    names_to = "building", 
+    values_to = "energyKWH") 
+```
+
+### d. 
+
+Create a data frame that contains acf values for 24 hours (i.e. a max
+lag of 24x4=96) for the three buildings used in (b, c). The plog acf
+values (y) against lag (x) for each of the buildings and describe what
+trends you see.
+
+------------------------------------------------------------------------
+
+## Problem 3: weather
+
+Load the `nasaweather` data and look at the help file for the
+atmospheric data `?atmos`.
+
+### a.
+
+Create a `for` loop that computes the coefficient of variation for all
+atmospheric measurements except location (lat/long) and time (year,
+month) variables. The coefficient of variation is the ratio of the
+standard deviation over the mean of a variable. Print out the output of
+your loop.
+
+### b.
+
+Use a `map` function (from `purrr` package) to compute the coefficient
+of variation for all atmospheric measurements except location (lat/long)
+and time (year, month) variables. Use a function that returns a vector
+or data frame (and show this output).
+
+### c. 
+
+Create a function called `my_stats` that computes the following
+statistics for an input vector: mean, sd, and 5-number summary
+(min/Q1/median/Q3/max). The function should return an output object that
+is a “named” vector. E.g. the following is a named vector with the name
+of the left side of `=` and the value on the right side. Show the output
+of your function by inputting the `temp` values from `atmos`.
+
+``` r
+# e.g. named vector with names x and y and values 1 and 2
+c(x = 1, y = 2)
+```
+
+### d. 
+
+Use `map_df` to compute `my_stats` for all atmospheric measurements
+except location (lat/long) and time (year, month) variables. Include the
+variable names as a column in your data frame.
+
+### e.
+
+For each year, compute `my_stats` for the `temp` variable. To do this:
+
+- use a year grouping and the `summarize` command
+- add a `stats` variable that identifies which statistic is entered in a
+  given row
+- then make a wider version of this data that contains a column for each
+  of the `my_stats` for each year in the data. (Final dimensions should
+  be 6x8)
+
+------------------------------------------------------------------------
+
+## Problem 4: String Extraction with Titanic train dataset.
+
+``` r
+#install.packages("titanic")
+library(titanic)
+set.seed(12233)
+df = tibble(titanic_train)  #load dataset
+```
+
+### a.
+
+The package `titanic` has data on the survival information of Titanic
+passengers including `Name`. Extract titles from the names of the
+passengers. These include `mr`, `mrs`, etc. Use suitable regex that
+consists of a look ahead pattern that tells us to look for something
+followed by a space, one or more instances of character/s, and a look
+behind to match patterns to a period after the string, respectively.
+
+``` r
+# Define the regex
+# reg <- 
+```
+
+### b.
+
+Plot the distribution of the the titles using either `geom_col()` or
+`geom_bar()` after properly reordering the variable based on their
+counts.
+
+### c. 
+
+Extract family names from `Name` and plot the 10 most frequent family
+names. Remember to extract the pattern to include any kinds of
+characters (.) that are 1 character or more in length (+) and are
+followed by a comma(?=`\\`,). What is/are the most popular last
+name/names?
+
+``` r
+#reg <- 
+```
+
+### d. 
+
+Write a function that plots the top 10 last names of passengers
+beginning and ending with certain letters passed as an argument to the
+function. Pass the `data tibble`,
+`letter corresponding to the beginning of the last name`, and
+`letter corresponding to the ending of the last name` as arguments to
+the function, and a plot (a distribution plot depicting the last names
+and their count) as the output of the function.

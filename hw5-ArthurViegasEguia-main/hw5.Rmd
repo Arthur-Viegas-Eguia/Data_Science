@@ -1,0 +1,386 @@
+---
+title: "Homework 5"
+output: pdf_document
+---
+
+## Name: Arthur Viegas Eguia
+
+## I worked with: Sarah, Allison, and Jenna at the stats help lab
+
+**Click the "Knit" button in RStudio to knit this file to a pdf.**
+
+--------------------------------------------
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, collapse = TRUE, 
+                      warning = FALSE, message = FALSE)
+# add packages here 
+library(readr)
+library(tidyverse)
+library(babynames)
+library(stringr)
+library(ggplot2)
+```
+
+
+
+## Problem 1: Regular expression 
+
+### a. 
+
+*answer:* There were 16314 baby names that end in vowels in 2017
+
+```{r}
+pattern <- "(.{1,})[aeiouy]\\b"
+babynames %>%
+  filter(year == 2017) %>%
+  select(name) %>%
+  unlist() -> names
+sum(str_count(names, pattern))
+
+```
+
+### b. 
+
+*answer:* 4 names matched this pattern, Edward, Eduard, Edgard, Edvard
+
+```{r}
+pattern2 <- "^Ed(.{1,})rd$"
+x <- c("Edward", "Eddard", "Ned")
+str_view(x, pattern2)
+str_view(names, pattern2)
+sum(str_count(names, pattern2))
+```
+
+
+### c. 
+
+*answer:* Yes, there are 19 names like that, the names are Aya, Aiya, Yui, Iya, Aoi, Yue, Yoyo, Yu, Yiyi, Io, Ai, Yaa, Yi, Aaya, Oya, Yi, Yao, Yu, Ayo
+
+```{r}
+pattern3 <- "^([aeiouyAEIOUY]{1,})$"
+str_view(names, pattern3)
+sum(str_count(names, pattern3))
+```
+
+### d. 
+
+*answer:* The length of the vector is 2960
+
+```{r}
+pattern4 <- "^.{4}$"
+result <- babynames %>%
+  filter(year == 2017) %>%
+  mutate(is_4_rows = str_detect(name, pattern4)) %>% 
+  filter(is_4_rows) %>% 
+  dplyr::pull(name)
+
+result %>% 
+  length()
+
+```
+
+
+
+### e. 
+
+*answer:* The palindrome names are anna, elle, emme, adda, alla, izzi, luul, avva, otto, anna
+
+```{r}
+pattern5 <- "(.)(.)\\2\\1"
+result %>%
+  str_to_lower() %>%
+  str_subset(pattern5)
+```
+
+
+------------------------------------------------
+
+## Problem 2: Energy autocorrelation
+
+### a. 
+
+```{r}
+energy <- readr::read_csv("https://raw.githubusercontent.com/deepbas/statdatasets/main/energy.csv",
+                    col_type = cols(
+                     .default = col_double(), 
+                      Timestamp = col_datetime(format = ""),
+                      dayWeek = col_factor(levels=c("Mon","Tues","Wed","Thurs","Fri","Sat","Sun"))
+                     ))
+
+```
+
+
+
+```{r}
+x <- energy %>% 
+  arrange(Timestamp) %>%    # making sure sorted by time
+  pull("Olin_Hall_of_Science")
+acf_out <- acf(
+  x,   # time series
+  na.action = na.pass,    # skips over NAs
+  lag.max = 4,   # max lag
+  plot = FALSE)   # don't plot
+acf_out
+acf_out$acf   # autocorr values
+acf_out$lag   # lag values
+```
+
+### a. 
+
+
+*answer:* Function written
+
+```{r}
+autocor_fun <- function(KWHVect, maxLag){
+  acf_out <- acf(
+    KWHVect, #Time series
+    na.action = na.pass,
+    lag.max = maxLag,
+    plot = FALSE
+    )
+  
+  
+  return(data.frame(autocor = as.vector(acf_out$acf), 
+                    lag = 0:maxLag))
+}
+autocor_fun(x, 4)
+```
+
+### b. 
+
+*answer:* write your answer here
+
+```{r}
+energy %>% 
+  arrange(Timestamp) %>%    # making sure sorted by time
+  select("Sayles-Hill" ,"Language_&_Dining_Center", "Olin_Hall_of_Science") %>% 
+  map_df(autocor_fun, maxLag = 4, .id = "buildings")
+
+```
+
+### c. 
+
+*answer:* write your answer here
+
+```{r}
+energy_narrow <- energy %>% 
+  mutate(month = month(month, label=TRUE)) %>%
+  pivot_longer(
+    cols = 9:90,
+    names_to = "building", 
+    values_to = "energyKWH") 
+
+#Special thanks to Jenna from the Stats Help Lab
+energy_narrow %>% 
+  group_by(building) %>% 
+  arrange(building, Timestamp) %>% 
+  filter(building == "Sayles-Hill" | 
+           building == "Language_&_Dining_Center" | 
+           building == "Olin_Hall_of_Science") %>% 
+  reframe(auto_correlation = autocor_fun(energyKWH, 4)) %>% 
+  unnest(auto_correlation)
+
+```
+
+
+### d. 
+
+*answer:* When the lag is 0, the auto correlation values are very high, over 0.80, then they start to decrease in a shape that resembles a parabola. 
+
+The auto correlation values reach a minimum at around 50, where they are either close to 0, or below 0. 
+
+After that, the auto correlation value starts to increase, in a shape similar to a parabola, and gets to values close to 0.8.
+
+
+```{r}
+energy %>% 
+  arrange(Timestamp) %>%    # making sure sorted by time
+  select("Sayles-Hill" ,
+         "Language_&_Dining_Center",
+         "Olin_Hall_of_Science") %>% 
+  map_df(autocor_fun,
+         maxLag = 96,
+         .id = "buildings") %>% 
+  ggplot(aes(x = lag, y = autocor, color = buildings)) +
+  geom_line() + labs(y = "auto correlation values", x = "lag")
+  
+```
+
+------------------------------------------------
+
+
+## Problem 3: weather
+
+### a. 
+
+*answer:* 
+
+```{r}
+library(nasaweather)
+for(coeff in 5:11){
+  str_c(colnames(atmos)[coeff], 
+        (sd(atmos[[coeff]],
+             na.rm = TRUE)/
+        mean(atmos[[coeff]],
+             na.rm = TRUE)), sep = " ") ->output
+  print(output)
+}
+```
+
+### b. 
+
+*answer:* write your answer here
+
+```{r}
+coefficient_of_variation <- function(x){
+  sd(x, na.rm = TRUE)/mean(x, na.rm = TRUE)
+}
+atmos %>% 
+  select(-(1:4)) %>% 
+  map_dfc(coefficient_of_variation)
+```
+
+
+### c. 
+
+
+```{r}
+# e.g. named vector with names x and y and values 1 and 2
+c(x = 1, y = 2)
+```
+
+
+*answer:* 
+
+```{r}
+my_stats <- function(vect){
+  c(mean = mean(vect, na.rm = TRUE),
+    sd = sd(vect, na.rm = TRUE),
+    min = min(vect, na.rm = TRUE),
+    Q1 = quantile(vect, 0.25, na.rm = TRUE),
+    median = median(vect, na.rm = TRUE),
+    Q3 = quantile(vect, 0.75, na.rm = TRUE),
+    max = max(vect, na.rm = TRUE))  
+}
+my_stats(c(1,2,3,4,5))
+```
+
+### d. 
+
+*answer:* write your answer here
+
+```{r}
+atmos %>% 
+  select(-(1:4)) %>% 
+  map_df(my_stats) %>%
+  mutate(variables = (colnames(atmos)[-(1:4)]))
+```
+
+
+
+### e. 
+
+*answer:* 
+
+```{r}
+#I worked with Sarah and Allison for this question
+atmos %>% 
+  group_by(year) %>% 
+  summarise(my_stats = my_stats(temp)) %>% 
+  mutate(stat = c("mean", "sd", "min", "Q1", "median","Q3", "max")) %>% 
+  pivot_wider(names_from = "stat",
+              values_from = "my_stats")
+```
+
+
+
+------------------------------------------------------------------------
+
+## Problem 4: 
+
+```{r}
+#install.packages("titanic")
+library(titanic)
+set.seed(12233)
+df = tibble(titanic_train)  #load dataset
+```
+
+### a. 
+
+*answer:*
+
+```{r}
+reg <- "(?<=\\s)[:alnum:]+(?=\\.)"
+str_extract(df$Name, reg) ->titanicTitles
+```
+
+
+### b. 
+
+*answer:*
+
+```{r}
+titanic_titles_df <- data.frame(titles = titanicTitles)
+titanic_titles_df %>% 
+  mutate(titles = factor(titles)) %>% 
+  ggplot(aes(x = fct_infreq(titles))) +
+  geom_bar(fill = "cornflowerblue") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+#Text rotated based on code from https://forum.posit.co/t/boxplot-how-to-rotate-x-axis-labels-to-45/87126/3
+```
+
+### c.  
+
+*answer:*
+
+```{r}
+reg <- ".+(?=\\,)"
+str_extract(df$Name, reg) -> titanicLastNames
+last_names_df <- data.frame(last_name = titanicLastNames)
+most_popular_last_names <- last_names_df %>% 
+  group_by(last_name) %>% 
+  summarise(popular_last_name = n()) %>% 
+  arrange(desc(popular_last_name)) %>% 
+  slice(1:10)
+most_popular_last_names
+
+
+last_names_df %>% 
+  filter(last_name %in% most_popular_last_names$last_name) %>% 
+  mutate(last_name = factor(last_name)) %>% 
+  ggplot(aes(x = fct_infreq(last_name))) +
+  geom_bar(fill = "yellow") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+```
+
+
+### d. 
+
+*answer:*
+
+```{r}
+mostPopularByLetter <- function(df, firstLetter, lastLetter){
+  reg <- ".+(?=\\,)"
+  str_extract(df$Name, reg) -> allLastNames
+  filterLetters <- str_c("^",
+                          str_to_upper(firstLetter),
+                          ".*",
+                          str_to_lower(lastLetter),
+                          "$")
+  filteredNames <- str_extract(allLastNames, filterLetters)
+  names_df <- data.frame(last_name = filteredNames) %>% 
+    drop_na() %>% 
+    mutate(last_name = factor(last_name)) %>% 
+    ggplot(aes(x = fct_infreq(last_name))) + 
+    geom_bar(fill = "pink") +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
+    
+    
+}
+res <- mostPopularByLetter(df, "S", "m")
+res
+```
+
+
+
