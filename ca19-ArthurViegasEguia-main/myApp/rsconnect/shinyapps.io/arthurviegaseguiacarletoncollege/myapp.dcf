@@ -1,0 +1,10 @@
+name: myapp
+title:
+username: arthurviegaseguiacarletoncollege
+account: arthurviegaseguiacarletoncollege
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 11964027
+bundleId: 8592844
+url: https://arthurviegaseguiacarletoncollege.shinyapps.io/myapp/
+version: 1

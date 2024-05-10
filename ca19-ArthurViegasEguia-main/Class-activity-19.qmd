@@ -1,0 +1,92 @@
+---
+title: "Class Activity 18"
+author: "Your name here"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+format:
+  html:
+    df_print: paged
+    editor: visual
+server: shiny
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  error: true
+---
+
+```{r setup, include=FALSE}
+# List of required packages
+library(tidyverse)
+library(shiny)
+library(dplyr)
+library(babynames)
+```
+
+
+## Question 1
+
+We are utilizing the `babynames` dataset to explore and visualize how the popularity of specific names has evolved over time in a Shiny app.
+
+
+### (a) Create a user interface (UI) by using `textInput` for the baby name input, `selectInput` for gender selection, and adding an `actionButton` to initiate the search.
+
+```{r}
+# fill in the portions marked with # fill #
+ui <- fluidPage(
+  titlePanel("Baby Names Trend"),
+  sidebarLayout(
+    sidebarPanel(
+      textInput("# fill #", "Enter a Baby Name:", "Emma"),
+      selectInput("# fill #", "Select Gender:", choices = c("Male" = "M", "Female" = "F")),
+      actionButton("# fill #", "Show Trend")
+    ),
+    mainPanel(plotOutput("# fill # "))
+  )
+)
+
+```
+
+
+### (b) Filter the `babynames` dataset based on user inputs for name and gender by utilizing `eventReactive` to respond to the action button press, and apply filter within this reactive context, using `isolate` to access the inputs without establishing reactive dependencies.
+
+
+```{r}
+# fill in the portions marked with # fill #
+
+server <- function(input, output) {
+  nameData <- eventReactive(input$goButton, {
+    req(# fill #) # Ensure the name input is not empty
+    babynames %>% 
+      filter(name == input$name, sex == input$gender)
+  })
+}
+
+```
+
+
+### (c) Create a line plot to visualize the trend of a selected baby name over the years by using `renderPlot`, showing the number of occurrences `(n)` of the name across different years `(year)` in addition to what you did in part b.
+
+```{r}
+server <- function(input, output) {
+  nameData <- 
+  
+  
+  output$nameTrend <- renderPlot({
+    req(# fill #) 
+    ggplot(nameData(), aes(x = year, y = n)) +
+      geom_line() +
+      labs(title = paste("Trend for name", isolate(input$name)),
+           x = "Year", y = "Number of Babies") +
+      theme_minimal()
+  })
+}
+```
+
+Remember, without `isolate`, any change to the inputs `(input$name and input$gender)` would immediately trigger the reactive expressions (`nameData` and the plotting logic within `renderPlot`) to re-execute. This means the plot would update every time the user types a letter in the name input field or changes the gender, rather than waiting for the user to press the `goButton`.
+
+### (d) Run the Shiny app by combining the UI and server components using `shinyApp.`
+
+```{r}
+shinyApp(ui, server, options = list(height = 800))
+```
+

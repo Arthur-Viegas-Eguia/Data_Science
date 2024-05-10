@@ -1,0 +1,141 @@
+---
+title: "Class Activity 19"
+author: "Arthur Viegas Eguia"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+output:
+  html_document:
+    df_print: paged
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      size = "small", 
+                      collapse = TRUE, 
+                      comment = NA, 
+                      warning = FALSE, 
+                      message = FALSE,
+                      error = TRUE) # change it to TRUE
+
+# List of required packages
+library(tidyverse)
+library(shiny)
+library(dplyr)
+library(babynames)
+```
+
+
+## Question 1
+
+We are utilizing the `babynames` dataset to explore and visualize how the popularity of specific names has evolved over time in a Shiny app.
+
+
+### (a) Create a user interface (UI) by using `textInput` for the baby name input, `selectInput` for gender selection, and adding an `actionButton` to initiate the search.
+
+```{r}
+# fill in the portions marked with # fill #
+ui <- fluidPage(
+  titlePanel("Baby Names Trend"),
+  sidebarLayout(
+    sidebarPanel(
+      textInput("name", "Enter a Baby Name:", "Emma"),
+      selectInput("gender", "Select Gender:", choices = c("Male" = "M", "Female" = "F")),
+      actionButton("go", "Show Trend")
+    ),
+    mainPanel(plotOutput("myPlot"))
+  )
+)
+
+```
+
+
+### (b) Filter the `babynames` dataset based on user inputs for name and gender by utilizing `eventReactive` to respond to the action button press, and apply filter within this reactive context, using `isolate` to access the inputs without establishing reactive dependencies.
+
+
+```{r}
+# fill in the portions marked with # fill #
+
+server <- function(input, output) {
+  nameData <- eventReactive(input$goButton, {
+    req(input$name) # Ensure the name input is not empty
+    babynames %>% 
+      filter(name == isolate(input$name), sex == isolate(input$gender))
+  })
+}
+
+```
+
+
+### (c) Create a line plot to visualize the trend of a selected baby name over the years by using `renderPlot`, showing the number of occurrences `(n)` of the name across different years `(year)` in addition to what you did in part b.
+
+```{r}
+server <- function(input, output) {
+  nameData <- eventReactive(input$go, {
+    req(input$name) # Ensure the name input is not empty
+    babynames %>% 
+      filter(name == isolate(input$name), sex == isolate(input$gender))
+  })
+  
+  
+  output$myPlot <- renderPlot({
+    req(input$name) 
+    ggplot(nameData(), aes(x = year, y = n)) +
+      geom_line() +
+      labs(title = paste("Trend for name", isolate(input$name)),
+           x = "Year", y = "Number of Babies") +
+      theme_minimal()
+  })
+}
+```
+
+Remember, without `isolate`, any change to the inputs `(input$name and input$gender)` would immediately trigger the reactive expressions (`nameData` and the plotting logic within `renderPlot`) to re-execute. This means the plot would update every time the user types a letter in the name input field or changes the gender, rather than waiting for the user to press the `goButton`.
+
+### (d) Run the Shiny app by combining the UI and server components using `shinyApp.`
+
+```{r}
+shinyApp(ui, server, options = list(height = 800))
+```
+
+
+
+### (e). Deploying a Shiny App to `shinyapps.io`
+
+
+Open an account on [shinyapps.io](https://www.shinyapps.io/admin/#/dashboard) and follow the steps to deploy one of the apps to [shinyapps.io](https://www.shinyapps.io/admin/#/dashboard).
+
+#### Step 1: Create Your Shiny App
+
+Create a file named app.R in a new folder. This folder will contain all the necessary files for your app. 
+
+#### Step 2: Organize Your App Folder
+
+Ensure your app.R file is saved in a dedicated folder for your app. This folder can also include any additional data files, data folder for data, or other resources your app needs.
+
+#### Step 3: Deploy Your App to `shinyapps.io`
+
+Before deploying, you'll need to set up an account on `shinyapps.io`. Use the rsconnect package to authenticate your R session with your `shinyapps.io` account. You will need the API key from your `shinyapps.io` account dashboard.
+
+```r
+library(rsconnect)
+rsconnect::setAccountInfo(name='<account-name>',
+                          token='<api-token>',
+                          secret='<api-secret>')
+```
+
+Replace `<account-name>`, `<api-token>`, and `<api-secret>` with your actual account name and API key details. Navigate to your app folder in RStudio, or set the working directory to your app folder in R: 
+
+```r
+setwd("/path/to/your/app")
+```
+
+Deploy your app using the `deployApp` function:
+
+```r
+rsconnect::deployApp()
+```
+
+Follow the prompts in the R console. Once the deployment process completes, you will receive a URL to access your app hosted on `shinyapps.io`.
+
+
+The app is hosted at https://arthurviegaseguiacarletoncollege.shinyapps.io/myapp/
+
