@@ -1,0 +1,446 @@
+---
+title: "Homework 6"
+output: pdf_document
+---
+
+## Name: Arthur Viegas Eguia
+
+## I worked with: Jacob Aronson (from the stats help lab)
+
+**Click the "Knit" button in RStudio to knit this file to a pdf.**
+
+--------------------------------------------
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse=TRUE, prompt=TRUE,comment=NULL,message=FALSE, include=TRUE, warning = FALSE)
+library(tidyverse)
+library(ggplot2)
+library(readr)
+library(ggthemes)
+theme_set(theme_stata(base_size = 10))  # for nice looking plots
+library(rvest)
+library(tidytext)
+library(tidyr)
+library(purrr)
+library(polite)
+library(tidytext)
+library(plotly)
+library(palmerpenguins)
+library(dplyr)
+library(shiny)
+```
+
+
+## Problem 1: Crimes
+
+Scrape the table of data found at https://en.wikipedia.org/wiki/List_of_United_States_cities_by_crime_rate and create a plot showing property crime rate (total property crime) vs. violent crime rate (total violent crime).  Identify outlier cities by using a plotting command similar to the one below. (Don't blindly use this without thinking about the column names.)
+
+```{r}
+crimes_table <- bow("https://en.wikipedia.org/wiki/List_of_United_States_cities_by_crime_rate", user_agent = "data enthusiast") %>% 
+  scrape() %>%
+  html_table() %>% 
+  .[[1]]
+
+
+crimes_table_clean <- crimes_table %>% 
+  set_names(.[1,]) %>% 
+  janitor::clean_names() %>% # Clean names
+  slice(c(-1, -2)) %>% # Remove the first row
+  mutate(across(everything(), ~na_if(.x, ""))) %>% # Convert empty strings to NA
+  type.convert(as.is = TRUE) %>% # Convert columns to their most appropriate type
+  mutate_at(vars(c(9, 14)), parse_number)
+
+crimes <- data.frame(city = crimes_table_clean[[2]],
+                     violent_crime = crimes_table_clean[[9]],
+                     property_crime = crimes_table_clean[[14]])
+```
+
+```{r, eval = FALSE}
+ggplot(crimes, aes(x = violent_crime, y = property_crime, label = city)) +
+    geom_point() +
+    geom_text(
+      data = filter(crimes, violent_crime > 1500 | property_crime > 6500), 
+      check_overlap = TRUE, size = 2.5, nudge_y = 40
+    )
+```
+
+
+
+------------------------------------------------
+
+
+
+## Problem 2: Movie scraping
+
+```{r}
+url <- "https://www.boxofficemojo.com/chart/ww_top_lifetime_gross/?offset=0&area=XWW"
+```
+
+
+### a. 
+
+*answer:* There is a single table
+
+```{r}
+movies_df <- read_html(url) %>% 
+  html_table() #The first item in the list is a tibble, so it is technically a data frame
+class(movies_df[[1]])
+```
+
+### b. 
+
+*answer:* write your answer here
+
+```{r}
+movies_df_clean <- movies_df[[1]] %>% 
+  janitor::clean_names() %>% 
+  rename(world_dollars = worldwide_lifetime_gross,
+         domestic_dollars = domestic_lifetime_gross,
+         domestic_percentage = domestic_percent,
+         overseas_dollars = foreign_lifetime_gross, 
+         overseas_percentage = foreign_percent) %>% 
+  slice(1:100)
+  
+```
+
+
+### c. 
+
+
+*answer:* 
+
+```{r}
+movie_df_right_types <- movies_df_clean %>% 
+  mutate(world_dollars = parse_number(world_dollars),
+         domestic_dollars = parse_number(domestic_dollars),
+         domestic_percentage = parse_number(domestic_percentage),
+         overseas_dollars = parse_number(overseas_dollars),
+         overseas_percentage = parse_number(overseas_percentage))
+movie_df_right_types
+```
+
+
+
+
+### d. 
+
+*answer:* The titanic position is going to be 26, and the URL is https://www.boxofficemojo.com/title/tt0120338/?ref_=bo_cso_table_4
+
+```{r}
+titanic_position <- read_html(url) %>% 
+  html_nodes("a") %>% 
+  html_text() %>% 
+  str_to_lower() %>% 
+  str_which("titanic")
+  
+```
+
+```{r}
+titanic_href <- str_c("https://www.boxofficemojo.com",
+                      read_html(url) %>% 
+                      html_nodes("a") %>% 
+                        html_attr("href")%>%
+                        .[titanic_position])
+titanic_href
+```
+
+
+### e. 
+
+```{r}
+temp_url <- "https://www.boxofficemojo.com/chart/ww_top_lifetime_gross/?offset=#&area=XWW"
+
+```
+
+
+*answer:* Indeed,"https://www.boxofficemojo.com/chart/ww_top_lifetime_gross/?offset=200&area=XWW" (which is just adding offset = 200) takes me to the page with movies starting at 201. 
+
+```{r}
+pull_table <- function(url_input){
+  modified_df <- read_html(url_input) %>% 
+  html_table() %>%
+    .[[1]] %>% 
+    janitor::clean_names() %>% 
+    rename(world_dollars = worldwide_lifetime_gross,
+          domestic_dollars = domestic_lifetime_gross,
+          domestic_percentage = domestic_percent,
+          overseas_dollars = foreign_lifetime_gross, 
+          overseas_percentage = foreign_percent) %>% 
+          mutate(across(c(3, 4, 5, 6, 7), parse_number))
+  ranks <- c()
+  for(i in modified_df$rank){
+    if(is.character(i)){
+      ranks <- c(ranks, parse_number(i))
+    }
+    else{
+      ranks <- c(ranks, as.numeric(i))
+    }
+  }
+  modified_df$rank <- ranks
+  return(modified_df)
+}
+
+test_url <- "https://www.boxofficemojo.com/chart/ww_top_lifetime_gross/?offset=800#&area=XWW"
+
+pull_table(test_url)
+```
+
+
+
+### f. 
+
+*answer:* 
+
+```{r}
+all_url <- "https://www.boxofficemojo.com/chart/ww_top_lifetime_gross/?offset="
+url_last_part <- "#&area=XWW"
+idx <- seq(0, 800, by = 200)
+movie_df <- map_df(idx, ~{
+  new_url <- str_glue("{all_url}{.x}{url_last_part}")
+  pull_table(new_url)
+})
+glimpse(movie_df)
+head(movie_df)
+```
+
+
+## Problem 3: Penguins
+
+```{r}
+ui <- fluidPage(
+  plotOutput("plot", height = 500)
+)
+
+server <- function(input, output){
+  output$plot <- renderPlot({
+    g <- ggplot(penguins, aes(x = bill_length_mm, y = body_mass_g)) 
+    g + geom_point()
+  })
+}
+
+# you can modify the height to avoid scrolling
+shinyApp(ui, server, options = list(height = 600))
+```
+
+
+### a. 
+
+*answer:*
+
+```{r}
+ui <- fluidPage(
+  checkboxInput("check", "Include color?", value = FALSE),
+  plotOutput("plot", height = 500)
+)
+
+server <- function(input, output){
+  output$plot <- renderPlot({
+    if(input$check){
+      g <- ggplot(penguins, aes(x = bill_length_mm, y = body_mass_g, color = species)) 
+    }
+    else{
+       g <- ggplot(penguins, aes(x = bill_length_mm, y = body_mass_g))
+    }
+    g + geom_point()
+  })
+}
+
+# you can modify the height to avoid scrolling
+shinyApp(ui, server, options = list(height = 600))
+```
+
+
+### b. 
+
+*answer:*
+
+```{r}
+ui <- fluidPage(
+  checkboxInput("check", "Include color?", value = FALSE),
+  varSelectInput("selectInputX", "X value", selected = "bill_length_mm", data = penguins %>% select(3:6)),
+  varSelectInput("selectInputY", "Y value", selected = "body_mass_g", data = penguins %>% select(3:6)),
+  plotOutput("plot", height = 500)
+)
+
+server <- function(input, output){
+  output$plot <- renderPlot({
+    if(input$check){
+      g <- ggplot(penguins, aes(x = !!input$selectInputX, y = !!input$selectInputY, color = species)) 
+    }
+    else{
+       g <- ggplot(penguins, aes(x = !!input$selectInputX, y = !!input$selectInputY))
+    }
+    g + geom_point()
+  })
+}
+
+# you can modify the height to avoid scrolling
+shinyApp(ui, server, options = list(height = 600))
+```
+
+
+
+### c. 
+
+
+*answer:*
+
+```{r}
+ui <- fluidPage(
+  checkboxInput("check", "Include color?", value = FALSE),
+  varSelectInput("selectInputX", "X value", selected = "bill_length_mm", data = penguins %>% select(3:6)),
+  varSelectInput("selectInputY", "Y value", selected = "body_mass_g", data = penguins %>% select(3:6)),
+  plotOutput("plot", height = 500, click = "my_click"),
+  dataTableOutput("my_table")
+)
+
+server <- function(input, output){
+  output$plot <- renderPlot({
+    if(input$check){
+      g <- ggplot(penguins, aes(x = !!input$selectInputX, y = !!input$selectInputY, color = species)) 
+    }
+    else{
+       g <- ggplot(penguins, aes(x = !!input$selectInputX, y = !!input$selectInputY))
+    }
+    g + geom_point()
+  })
+  output$my_table <- renderDataTable({
+    nearPoints(penguins, input$my_click)
+  })
+}
+
+# you can modify the height to avoid scrolling
+shinyApp(ui, server, options = list(height = 600))
+```
+
+
+
+
+### d. 
+
+*answer:*
+
+```{r}
+ui <- fluidPage(
+  checkboxInput("check", "Include color?", value = FALSE),
+  varSelectInput("selectInputX", "X value", selected = "bill_length_mm", data = penguins %>% select(3:6)),
+  varSelectInput("selectInputY", "Y value", selected = "body_mass_g", data = penguins %>% select(3:6)),
+  plotOutput("plot", height = 500, brush = "my_brush"),
+  dataTableOutput("my_table")
+)
+
+server <- function(input, output){
+  output$plot <- renderPlot({
+    if(input$check){
+      g <- ggplot(penguins, aes(x = !!input$selectInputX, y = !!input$selectInputY, color = species)) 
+    }
+    else{
+       g <- ggplot(penguins, aes(x = !!input$selectInputX, y = !!input$selectInputY))
+    }
+    g + geom_point()
+  })
+  output$my_table <- renderDataTable({
+    brushedPoints(penguins, input$my_brush)
+  })
+}
+
+# you can modify the height to avoid scrolling
+shinyApp(ui, server, options = list(height = 600))
+```
+
+
+------------------------------------------------
+
+
+
+## Problem 4: Storm paths
+
+
+Special thanks to Jacob Aaronson
+
+```{r}
+ctry <- map_data("world", 
+                 region = c(
+                   "usa",
+                   "mexico",
+                   "canada",
+                   "uk"
+                 ))
+base_map <- ggplot(ctry) +  
+  geom_polygon(aes(x = long,  y = lat, group = group)) + 
+  labs( 
+    x = "longitude", 
+    y = "latitude", 
+    title = "Atlantic storms paths"
+    )  
+
+base_map + 
+  geom_path(data = storms, aes(x = long, y = lat, group = name), color = "red") +  
+  coord_map(xlim  = c(min(storms$long), max(storms$long)),
+            ylim  = c(min(storms$lat), max(storms$lat)))
+head(storms)
+
+```
+
+### a.
+
+
+*answer:*
+
+
+```{r}
+Individualstorm <- storms %>% 
+      filter(name == "Amy") %>% 
+  group_by(name) %>% 
+  mutate(date = make_datetime(year = year,
+                              month = month,
+                              day = day,
+                              hour = hour)) %>% 
+  mutate(ellapsed_time = difftime(date, min(date), units = "hours")) %>% 
+  mutate(ellapsed_time = as.numeric(ellapsed_time))
+
+ui <- fluidPage(
+  sliderInput("mySlider", "Storm Time", min = 0, max = 180, value = 90, step = 6),
+  plotOutput("plot", height = 500)
+  
+)
+
+server <- function(input, output){
+  
+  ellapsedTime <- reactive({filter(Individualstorm, ellapsed_time <= input$mySlider)})
+  output$plot <- renderPlot({
+    base_map +  geom_path(data = ellapsedTime(), aes(x = long, y = lat, group = name), color = "red")
+  })
+}
+
+# you can modify the height to avoid scrolling
+shinyApp(ui, server, options = list(height = 600))
+```
+
+
+### b. 
+
+*answer:*
+
+```{r}
+ui <- fluidPage(
+  selectInput("selectStorm", "Storm Name", selected = "Amy", choices = unique(storms$name)),
+  plotOutput("plot", height = 500)
+)
+
+server <- function(input, output){
+  
+  stormOfInterest <- reactive({filter(storms, name == input$selectStorm)})
+  output$plot <- renderPlot({
+    base_map + geom_path(data = stormOfInterest(), aes(x = long, y = lat), color = "red")
+  })
+}
+
+# you can modify the height to avoid scrolling
+shinyApp(ui, server, options = list(height = 600))
+#  coord_map(xlim  = c(min(long), max(long)),
+#            ylim  = c(min(lat), max(lat)), data = stormOfInterest)
+
+```
+
+

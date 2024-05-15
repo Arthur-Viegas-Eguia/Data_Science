@@ -1,0 +1,166 @@
+---
+title: "Class Activity 22"
+author: "Your name here"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+format:
+  html:
+    df_print: paged
+    editor: visual
+server: shiny
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  error: true
+---
+
+```{r setup, include=FALSE}
+# load the necessary libraries
+library(tidyverse) 
+library(tidymodels)
+library(mlbench)     # for PimaIndiansDiabetes2 dataset
+library(janitor)
+library(parsnip)
+library(kknn)
+library(ggthemes)
+library(purrr)
+library(forcats)
+
+select <- dplyr::select
+```
+
+
+
+## Group Activity 1
+
+Load the `mlbench` package to get `PimaIndiansDiabetes2` dataset.
+
+```{r}
+# Load the data - diabetes
+data(PimaIndiansDiabetes2)
+db <- PimaIndiansDiabetes2
+db <- db %>% drop_na() %>% mutate(diabetes = fct_rev(factor(diabetes))) 
+db_raw <- db %>% select(glucose, insulin, diabetes)
+```
+
+
+a. Split the data `75-25` into training and test set using the following code. 
+
+```{r}
+set.seed(123)
+
+
+```
+  
+  
+b. Follow the steps to train a 7-NN classifier using the `tidymodels` toolkit 
+    
+
+```{r}
+# define recipe and preprocess the data
+db_recipe <- 
+```
+    
+
+```{r}
+# specify the model
+db_knn_spec7 <- 
+```
+
+
+```{r}
+# define the workflow
+db_workflow <-
+```
+
+
+```{r}
+# fit the model on the training data
+db_fit <- 
+```
+    
+    
+c. Classify the penguins in the `test` data frame. 
+
+```{r}
+test_features <- db_test %>% select(glucose, insulin) 
+
+# predict
+db_pred <- 
+
+  
+# combine the results
+
+```
+
+
+-----------------------------------------------------------------------------------------------
+
+## Group Activity 2
+
+Calculate the accuracy, sensitivity, specificity, and positive predictive value (PPV) using the following confusion matrix.
+
+```{r}
+conf_mat(db_results, truth = diabetes, estimate = predicted)
+```
+
+
+```{r}
+# your r-code
+
+```
+
+
+## Extra: Code to recreate the plot in the `slides` for the `diabetes` dataset.
+
+
+```{r}
+metrics_for_k <- function(k, db_train, db_test){
+db_knn_spec <- nearest_neighbor(mode = "classification",
+                             engine = "kknn",
+                             weight_func = "rectangular",
+                             neighbors = k)
+
+db_knn_wkflow <- workflow() %>%
+  add_recipe(db_recipe) %>%
+  add_model(db_knn_spec)
+
+db_knn_fit <- fit(db_knn_wkflow, data = db_train)
+test_features <- db_test %>% select(glucose, insulin)
+nn1_pred <- predict(db_knn_fit, test_features, type = "raw")
+
+db_results <- db_test %>% 
+  select(diabetes) %>% 
+  bind_cols(predicted = nn1_pred)
+custom_metrics <- metric_set(accuracy, sens, spec, ppv)
+
+metrics <- custom_metrics(db_results,
+               truth = diabetes,
+               estimate = predicted) 
+metrics <- metrics %>% select(-.estimator) %>% mutate(k = rep(k,4))
+
+return(list = metrics)
+}
+
+
+
+# run the function and store it as "optim.results"
+
+
+
+
+# plot
+
+optim.results %>%
+  ggplot(aes(x = , y = , color = ))) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  ggthemes::scale_color_wsj() + 
+  scale_x_continuous(breaks = k) +
+  theme(panel.grid.minor.x = element_blank(),
+        axis.text=element_text(size=6, angle = 20))+
+  labs(color='Metric', y = "Estimate", x = "K") 
+```
+
+

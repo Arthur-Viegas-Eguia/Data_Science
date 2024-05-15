@@ -1,0 +1,182 @@
+---
+title: "Class Activity 21"
+author: "Arthur Viegas Eguia"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      size = "small", 
+                      collapse = TRUE, 
+                      comment = NA, 
+                      warning = FALSE, 
+                      message = FALSE,
+                      error = TRUE) # change it to TRUE
+
+# load the necessary libraries
+library(tidyverse) 
+library(tidymodels)
+library(mlbench)  # for the dataset   
+library(janitor)
+library(paletteer)
+library(corrr)
+library(forcats)
+library(ggthemes)
+```
+
+
+
+
+## Group Activity 1
+
+
+```{r}
+# Load the data
+data(PimaIndiansDiabetes2)
+db <- PimaIndiansDiabetes2 %>% tidyr::drop_na()
+
+# correlation plot of the variables
+db %>%
+  select(-diabetes) %>%  # only numerical variables
+  correlate() %>%
+  stretch() %>%
+  ggplot(aes(x, y, fill = r)) +
+  geom_tile() +
+  geom_text(aes(label = as.character(fashion(r)))) +
+  scale_fill_paletteer_c("scico::roma", limits = c(-1, 1), direction = -1)
+```
+
+
+
+a. Create a scatter plot using ggplot2 to visualize the classification of diabetes status based on glucose and insulin levels, color-coding negative cases in blue and positive cases in red.
+
+
+```{r}
+ggplot(db, aes(x = glucose, y = insulin, color = diabetes)) +
+  geom_point(alpha = 0.5) + 
+  scale_color_manual(values = c("neg" = "blue", "pos" = "red"))
+```
+
+
+b. Using the provided standardization function, apply it to both the glucose and insulin columns of your dataset to create new standardized columns, then plot these standardized values to analyze diabetes status.
+
+```{r}
+standardize <- function(x, na.rm = FALSE) {
+  (x - mean(x, na.rm = na.rm)) / 
+    sd(x, na.rm = na.rm)
+}
+```
+
+
+```{r}
+db_std <- db %>%
+  mutate(glucose_std = standardize(glucose, na.rm = TRUE),
+         insulin_std = standardize(insulin, na.rm = TRUE))
+```
+
+```{r}
+ggplot(db_std, aes(x = glucose_std, y = insulin_std, color = diabetes)) +
+  geom_point(alpha = 0.5) + 
+  scale_color_manual(values = c("neg" = "blue", "pos" = "red"))
+```
+
+
+
+c. Let's  perform all the steps involved in classifying whether a patient with certain glucose and insulin would have diabetes or not.
+
+
+```{r}
+# 1 Prepare raw data
+db_raw <- db %>% drop_na() %>%  select(glucose, insulin, diabetes)
+```
+
+
+```{r}
+# 2 Create a recipe for data pre-processing
+db_recipe <- recipe(diabetes ~ ., data = db_raw) %>% 
+  step_scale(all_predictors()) %>% 
+  step_center(all_predictors()) %>% 
+  prep()
+```
+
+
+```{r}
+# 3 Apply the recipe to the data set
+db_scaled <- bake(db_recipe, db_raw)
+```
+
+
+```{r}
+# 4 Create a model specification
+knn_spec <- nearest_neighbor(mode = "classification",
+                             engine = "kknn",
+                             neighbors = 5)
+```
+
+
+```{r}
+# 5 Fit the model on the pre-processed data
+knn_fit <- knn_spec %>%  fit(diabetes ~ ., data = db_scaled)
+knn_fit
+```
+
+
+```{r}
+# 6 Classify
+# These are standardized value!!
+new_observations <- tibble(glucose = c(1, 2), insulin = c(-1, 1))
+
+predict(knn_fit, new_data = new_observations)
+
+```
+
+
+d. We already know the labels of the patients in the dataset. How well does the model predict their diabetes status? We will see more of this in the coming lectures.
+
+```{r}
+#scaled_observations <- 
+  
+```
+
+What is the accuracy percentage?
+
+*Answer:*
+
+```{r}
+db_scaled %>% 
+  predict(knn_fit, new_data = .) %>% 
+  bind_cols(db_scaled, .) %>% 
+  mutate(correct_prediction = diabetes == .pred_class) %>% 
+  summarize(accuracy = mean(correct_prediction))
+```
+
+
+
+e. Repeat part d. with a different model that consists of all the available features fitted with different number of neighbors. See if the accuracy percentage change in this new setting.
+
+```{r}
+db_new <- db %>% tidyr::drop_na()
+
+db_recipe <- recipe(diabetes ~ ., data = db_new) %>% 
+  step_scale(all_predictors()) %>% 
+  step_center(all_predictors()) %>% 
+  prep()
+
+db_scaled <- bake(db_recipe, db_new)
+
+knn_spec <- nearest_neighbor(mode = "classification",
+                             engine = "kknn",
+                             neighbors = 25)
+knn_fit <- knn_spec %>%  fit(diabetes ~ ., data = db_scaled)
+db_scaled %>% 
+  predict(knn_fit, new_data = .) %>% 
+  bind_cols(db_scaled, .) %>% 
+  mutate(correct_prediction = diabetes == .pred_class) %>% 
+  summarize(accuracy = mean(correct_prediction))
+```
+
+

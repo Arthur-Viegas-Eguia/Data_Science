@@ -1,0 +1,146 @@
+---
+title: "Class Activity 21"
+author: "Your name here"
+date: "`r format(Sys.Date(), ' %B %d %Y')`"
+format:
+  html:
+    df_print: paged
+    editor: visual
+server: shiny
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  error: true
+---
+
+```{r setup, include=FALSE}
+# load the necessary libraries
+library(tidyverse) 
+library(tidymodels)
+library(mlbench)     
+library(janitor)
+library(parsnip)
+library(kknn)
+library(paletteer)
+library(corrr)
+library(forcats)
+library(ggthemes)
+```
+
+
+
+
+
+## Group Activity 1
+
+
+```{r}
+# Load the data
+data(PimaIndiansDiabetes2)
+db <- PimaIndiansDiabetes2
+
+# correlation plot of the variables
+db %>%
+  select(-diabetes) %>%  # only numerical variables
+  correlate() %>%
+  stretch() %>%
+  ggplot(aes(x, y, fill = r)) +
+  geom_tile() +
+  geom_text(aes(label = as.character(fashion(r)))) +
+  scale_fill_paletteer_c("scico::roma", limits = c(-1, 1), direction = -1)
+```
+
+
+
+a. Create a scatter plot using ggplot2 to visualize the classification of diabetes status based on glucose and insulin levels, color-coding negative cases in blue and positive cases in red.
+
+
+```{r}
+ggplot(db_raw, aes(x = glucose, y = insulin, color = diabetes)) +
+  # fill in #
+  scale_color_manual(values = c("neg" = "blue", "pos" = "red"))
+```
+
+
+b. Using the provided standardization function, apply it to both the glucose and insulin columns of your dataset to create new standardized columns, then plot these standardized values to analyze diabetes status.
+
+```{r}
+standardize <- function(x, na.rm = FALSE) {
+  (x - mean(x, na.rm = na.rm)) / 
+    sd(x, na.rm = na.rm)
+}
+```
+
+
+```{r}
+db_std <- db_raw %>%
+  mutate(# fill in #)
+```
+
+
+c. Let's  perform all the steps involved in classifying whether a patient with certain glucose and insulin would have diabetes or not.
+
+
+```{r}
+# 1 Prepare raw data
+db_raw <- db %>% drop_na() %>%  select(glucose, insulin, diabetes)
+```
+
+
+```{r}
+# 2 Create a recipe for data pre-processing
+db_recipe <- 
+```
+
+
+```{r}
+# 3 Apply the recipe to the data set
+db_scaled <-  
+```
+
+
+```{r}
+# 4 Create a model specification
+knn_spec <- 
+```
+
+
+```{r}
+# 5 Fit the model on the pre-processed data
+knn_fit <- 
+```
+
+
+```{r}
+# 6 Classify
+# These are standardized value!!
+new_observations <- tibble(glucose = c(1, 2), insulin = c(-1, 1))
+
+```
+
+
+d. We already know the labels of the patients in the dataset. How well does the model predict their diabetes status? We will see more of this in the coming lectures.
+
+```{r}
+scaled_observations <- 
+  
+```
+
+What is the accuracy percentage?
+
+*Answer:*
+
+```{r}
+
+```
+
+
+
+e. Repeat part d. with a different model that consists of all the available features fitted with different number of neighbors. See if the accuracy percentage change in this new setting.
+
+```{r}
+knn_spec <- 
+```
+
+
